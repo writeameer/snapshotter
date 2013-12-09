@@ -1,0 +1,8 @@
+2013-12-09 07:36:34,555	info	main	Job Started
+2013-12-09 07:36:34,725	info	main	Job Ended
+2013-12-09 07:36:46,241	info	main	Job Started
+2013-12-09 07:36:46,422	info	main	Job Ended
+2013-12-09 07:36:55,564	info	main	Job Started
+2013-12-09 07:36:57,718	info	SnapShotVolume	Server web:i-e0ac60bd Volume Id:vol-c92e2ee0 was snapshotted and tagged.
+2013-12-09 07:36:58,188	info	SnapShotVolume	Server web:i-e0ac60bd Volume Id:vol-c32e2eea was snapshotted and tagged.
+2013-12-09 07:36:58,216	info	main	Job Ended
