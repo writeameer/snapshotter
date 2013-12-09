@@ -13,6 +13,8 @@ namespace CloudomanUtils
     {
         static string _instanceId;
         static string _ec2Region;
+        static string _serverName;
+
         static public string InstanceId
         {
             get
@@ -34,6 +36,8 @@ namespace CloudomanUtils
                 return _ec2Region;
             }
         }
+
+
 
         public static string GetServerTag(AmazonEC2 ec2Client, string tagName)
         {
@@ -80,17 +84,37 @@ namespace CloudomanUtils
 
             if (volumes.Count == 0)
             {
-                Logger.Info("No attached volumes were found", "BackStuff");
+                Logger.Info("No attached volumes were found", "GetMyVolumes");
                 return null;
             }
 
             return volumes;
         }
 
-        public static List<Snapshot> GetMySnapshots(AmazonEC2 ec2Client)
+        public static List<Snapshot> GetMySnapshots(AmazonEC2 ec2Client, string serverName)
         {
+            var Filters = new List<Filter> {
+                new Filter
+                {
+                    Name = "tag-key",
+                    Value = new List<string> { "ServerName" }
+                },
+                new Filter
+                {
+                    Name = "tag-value",
+                    Value = new List<string> { serverName }
+                }
+            };
 
-            return null;
+            var request = new DescribeSnapshotsRequest { Filter = Filters };
+            var snapshots = ec2Client.DescribeSnapshots(request).DescribeSnapshotsResult.Snapshot;
+
+            if (snapshots.Count==0)
+            {
+                Logger.Info("No snapshots found", "GetMySnapshots");
+                return null;
+            }
+            return snapshots;
         }
     }
 }

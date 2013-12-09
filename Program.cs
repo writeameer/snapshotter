@@ -13,7 +13,7 @@ namespace CloudomanUtils
         static void Main(string[] args)
         {
             var sn  = new Snapshotter();
-
+            sn.List();
             Environment.Exit(0);
 
             string operation="";

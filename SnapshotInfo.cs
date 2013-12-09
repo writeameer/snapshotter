@@ -5,12 +5,10 @@ using System.Text;
 
 namespace CloudomanUtils
 {
-    public class VolumeInfo
+    public class SnapshotInfo
     {
-        public string VolumeId { get; set; }
+        public string SnapshotId { get; set; }
         public string Device { get; set; }
         public string Drive { get; set; }
-        public string TimeStamp { get; set; }
-        public string AwsStartTime { get;set;}
     }
 }

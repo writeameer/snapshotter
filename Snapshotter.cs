@@ -20,7 +20,8 @@ namespace CloudomanUtils
         readonly string _snapshotName;
         readonly string _instanceId;
         readonly string _serverNameTag;
-        List<BackupVolumeInfo> _backupVolumeInfo;
+        List<VolumeInfo> _backupVolumes;
+        List<SnapshotInfo> _snapShots;
 
         public Snapshotter()
 	    {
@@ -39,7 +40,7 @@ namespace CloudomanUtils
 
             // Get Info on volumes to be backed up
             var volumes = Utils.GetMyVolumes(_ec2Client);
-            _backupVolumeInfo = volumes.Where(v => v.Attachment[0].Device != "/dev/sda1").Select(x => new BackupVolumeInfo
+            _backupVolumes = volumes.Where(v => v.Attachment[0].Device != "/dev/sda1").Select(x => new VolumeInfo
             {
                 Device = x.Attachment[0].Device,
                 VolumeId = x.Attachment[0].VolumeId,
@@ -60,9 +61,19 @@ namespace CloudomanUtils
 
         public void List()
         {
-            var request = new DescribeSnapshotsRequest();
+            var snapShots = Utils.GetMySnapshots(_ec2Client, _serverNameTag);
+            _snapShots = snapShots
+                .Where ( x => x.Status == "completed")
+                .Select( x => new SnapshotInfo {
+                SnapshotId = x.SnapshotId,
+                Drive = x.Tag.Where(t => t.Key == "Drive").Select(d => d.Value).FirstOrDefault(),
+                Device = x.Tag.Where(t => t.Key == "DeviceName").Select(d => d.Value).FirstOrDefault()
+            }).ToList();
 
+            _snapShots.ToList().ForEach(x => Console.WriteLine(x.SnapshotId + " " + x.Device + " " + x.Drive));
         }
+
+
         bool CheckBackupPreReqs()
         {
 
@@ -75,7 +86,7 @@ namespace CloudomanUtils
 
             // Check instance has EBS volumes to snapshot
             // excluding boot volume
-            if (_backupVolumeInfo.Count() == 0)
+            if (_backupVolumes.Count() == 0)
             {
                 Logger.Error("No EBS volumes excluding boot drive were found for snapshotting.\nExitting.", "SnapshotBackup");
                 return false;
@@ -83,7 +94,7 @@ namespace CloudomanUtils
 
             // Ensure all volumes for this server have resources tags
             // identifying their drive letters
-            var missingDriveLetters = _backupVolumeInfo.Where(x => String.IsNullOrEmpty(x.Drive));
+            var missingDriveLetters = _backupVolumes.Where(x => String.IsNullOrEmpty(x.Drive));
             if (missingDriveLetters.Count() > 0)
             {
                 var volumes = string.Join(",", missingDriveLetters.Select(x => x.VolumeId));
@@ -98,7 +109,7 @@ namespace CloudomanUtils
         }
 
 
-        void SnapshotVolume(BackupVolumeInfo backupVolumeInfo, string timeStamp)
+        void SnapshotVolume(VolumeInfo backupVolumeInfo, string timeStamp)
         {
 
 
@@ -146,7 +157,7 @@ namespace CloudomanUtils
             // Create Timestamp for Backup Set
             var timeStamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssffff");
 
-            _backupVolumeInfo.ToList().ForEach(x => {
+            _backupVolumes.ForEach(x => {
 
                 var driveName = x.Drive + ":\\";
 
