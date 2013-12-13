@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackupVolumeInfo.cs" />
+    <Compile Include="DiskPart.cs" />
     <Compile Include="Ec2Region.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MyArgs.cs" />

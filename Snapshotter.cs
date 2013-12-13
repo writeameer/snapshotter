@@ -169,7 +169,7 @@ namespace CloudomanUtils
                 vss.StartSnapshotSet();
                 vss.AddToSnapshotSet(driveName);
                 vss.PrepareForBackup();
-
+                vss.DoSnapshotSet();
                 // Snapshot Volume
                 SnapshotVolume(x, timeStamp);
 
