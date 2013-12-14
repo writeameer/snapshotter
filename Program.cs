@@ -13,12 +13,10 @@ namespace CloudomanUtils
         static void Main(string[] args)
         {
 
-            //var sn = new Snapshotter();
-            //sn.List();
-            //Environment.Exit(0);
+            new ScratchPad();
+            Environment.Exit(0);
 
-            string operation="";
-            Snapshotter snapShotter=null;
+            var operation="";
 
             Logger.Info("Job Started", "main");
 
@@ -31,7 +29,7 @@ namespace CloudomanUtils
                 operation = parsed.Operation.ToString(); ;
 
                 // Create Snapshotter object 
-                snapShotter = new Snapshotter();
+                var snapShotter=new Snapshotter();
 
                 // Run backup or restore
                 if (operation == "backup")
