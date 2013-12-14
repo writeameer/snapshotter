@@ -13,7 +13,6 @@ namespace CloudomanUtils
     {
         static string _instanceId;
         static string _ec2Region;
-        static string _serverName;
 
         static public string InstanceId
         {
@@ -28,11 +27,9 @@ namespace CloudomanUtils
         {
             get
             {
-                if (_ec2Region == null)
-                {
-                    _ec2Region = (new WebClient()).DownloadString("http://169.254.169.254/latest/meta-data/placement/availability-zone");
-                    _ec2Region = "https://ec2." + _ec2Region.Remove(_ec2Region.Length - 1) + ".amazonaws.com";
-                }
+                if (_ec2Region != null) return _ec2Region;
+                _ec2Region = (new WebClient()).DownloadString("http://169.254.169.254/latest/meta-data/placement/availability-zone");
+                _ec2Region = "https://ec2." + _ec2Region.Remove(_ec2Region.Length - 1) + ".amazonaws.com";
                 return _ec2Region;
             }
         }
@@ -60,8 +57,7 @@ namespace CloudomanUtils
 
             var tags = ec2Client.DescribeTags(new DescribeTagsRequest { Filter = filters}).DescribeTagsResult.ResourceTag;
 
-            if (tags.Count == 0) return null;
-            return tags[0].Value;
+            return tags.Count == 0 ? null : tags[0].Value;
         }
 
  
@@ -82,18 +78,14 @@ namespace CloudomanUtils
 
             var volumes = ec2Client.DescribeVolumes(request).DescribeVolumesResult.Volume;
 
-            if (volumes.Count == 0)
-            {
-                Logger.Info("No attached volumes were found", "GetMyVolumes");
-                return null;
-            }
-
-            return volumes;
+            if (volumes.Count != 0) return volumes;
+            Logger.Info("No attached volumes were found", "GetMyVolumes");
+            return null;
         }
 
         public static List<Snapshot> GetMySnapshots(AmazonEC2 ec2Client, string serverName)
         {
-            var Filters = new List<Filter> {
+            var filters = new List<Filter> {
                 new Filter
                 {
                     Name = "tag-key",
@@ -106,15 +98,12 @@ namespace CloudomanUtils
                 }
             };
 
-            var request = new DescribeSnapshotsRequest { Filter = Filters };
+            var request = new DescribeSnapshotsRequest { Filter = filters };
             var snapshots = ec2Client.DescribeSnapshots(request).DescribeSnapshotsResult.Snapshot;
 
-            if (snapshots.Count==0)
-            {
-                Logger.Info("No snapshots found", "GetMySnapshots");
-                return null;
-            }
-            return snapshots;
+            if (snapshots.Count != 0) return snapshots;
+            Logger.Info("No snapshots found", "GetMySnapshots");
+            return null;
         }
     }
 }
