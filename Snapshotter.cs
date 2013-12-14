@@ -4,11 +4,6 @@ using Amazon.EC2.Model;
 using Amazon.EC2;
 using System.Collections.Generic;
 using Amazon;
-using System.Net;
-using System.Text;
-using AlphaShadow.Commands;
-using AlphaShadow.Options;
-using AlphaShadow;
 using Alphaleonis.Win32.Vss;
 
 
