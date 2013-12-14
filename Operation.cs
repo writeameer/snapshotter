@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Amazon;
 using PowerArgs;
 
 namespace CloudomanUtils
@@ -11,19 +10,15 @@ namespace CloudomanUtils
     // </summary>
     public class Operation : GroupedRegexArg
     {
-        string _operation;
+        readonly string _operation;
 
         // List valid options
         static readonly IEnumerable<string> Options = new List<string>{"backup", "restore"};
 
-        
-        
-        
         // Format into readable help message
-        static readonly string HelpMessage =
-            "Invalid Operation Specified. Must be 'backup' or 'restore'";
+        private const string HelpMessage = "Invalid Operation Specified. Must be 'backup' or 'restore'";
 
-		// Constructor
+        // Constructor
         public Operation(string operation)
             : base(OperationRegex, operation, HelpMessage)
         {
