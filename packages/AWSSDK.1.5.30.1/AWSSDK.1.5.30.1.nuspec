@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>AWSSDK</id>
     <version>1.5.30.1</version>
@@ -13,8 +13,5 @@
     <description>Build applications that tap into the cost-effective, scalable, and reliable AWS cloud. Get started in minutes using AWS infrastructure services, including Amazon Simple Storage Service (Amazon S3), Amazon Elastic Compute Cloud (Amazon EC2), and Amazon SimpleDB.</description>
     <language>en-US</language>
     <tags>AWS Amazon cloud</tags>
-    <references>
-      <reference file="AWSSDK.dll" />
-    </references>
   </metadata>
 </package>

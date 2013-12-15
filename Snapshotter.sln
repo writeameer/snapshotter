@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snapshotter", "Snapshotter.csproj", "{33481A0F-783C-40D3-BBDC-EF99DBB9A9E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snapshotter", "snapshotter\Snapshotter.csproj", "{33481A0F-783C-40D3-BBDC-EF99DBB9A9E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiskPart", "..\DiskPart\DiskPart.csproj", "{C60E1DEE-5799-4D75-9559-5849A0256E9D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiskPart", "DiskPart\DiskPart.csproj", "{C60E1DEE-5799-4D75-9559-5849A0256E9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

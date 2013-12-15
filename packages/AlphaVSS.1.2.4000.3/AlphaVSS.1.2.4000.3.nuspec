@@ -3,7 +3,7 @@
   <metadata>
     <id>AlphaVSS</id>
     <version>1.2.4000.3</version>
-    <title>AlphaVSS</title>
+    <title />
     <authors>decaf</authors>
     <owners>decaf</owners>
     <licenseUrl>http://alphavss.codeplex.com/license</licenseUrl>
@@ -15,8 +15,5 @@ AlphaVSS, written in C# and C++/CLI provides a managed interface to this API.
 
 The goal of AlphaVSS is to provide an interface that is simple to use from any .NET application, yet provides the full functionality of VSS.</description>
     <summary>AlphaVSS is a .NET class library released under the MIT license providing a managed API for the Volume Shadow Copy Service also known as VSS</summary>
-    <releaseNotes />
-    <copyright />
-    <language />
   </metadata>
 </package>
