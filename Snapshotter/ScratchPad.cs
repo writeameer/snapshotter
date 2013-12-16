@@ -12,8 +12,18 @@ namespace CloudomanUtils
         public ScratchPad()
         {
             var diskPart = new DiskPart();
-            //var disks = diskPart.ListDisk();
-            //disks.ToList().ForEach(x => Console.WriteLine("{0} {1} {2} {3}", x.Num, x.Status, x.Size,x.Free));
+            var disks = diskPart.ListDisk();
+            
+            disks.ToList().ForEach(x =>
+            {
+                Console.WriteLine("Num:" + x.Num);
+                Console.WriteLine("Status:"+ x.Status);
+                Console.WriteLine("Size:" + x.Size);
+                Console.WriteLine("Free:" + x.Free) ;
+                Console.WriteLine("Dyn:"+ x.Dyn);
+                Console.WriteLine("Gpt:" + x.Gpt);
+
+            });
 
             var volumes = diskPart.ListVolume();
             volumes.ToList().ForEach(x =>

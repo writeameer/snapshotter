@@ -35,7 +35,7 @@ namespace Cloudoman.DiskPart
                        {
                            Num = int.Parse(x.Substring(2,10).Split(' ')[1]),
                            Letter = x.Substring(14,3).Trim().NullIfEmpty(),
-                           Label = x.Substring(19, 11).NullIfEmpty(),
+                           Label = x.Substring(19, 11).Trim().NullIfEmpty(),
                            FileSystem = x.Substring(32, 4).Trim().NullIfEmpty(),
                            Type = x.Substring(39, 10).Trim().NullIfEmpty(),
                            Size = x.Substring(51, 7).Trim().NullIfEmpty(),
@@ -53,17 +53,14 @@ namespace Cloudoman.DiskPart
                        .Skip(5) // Skip lines from top
                        .Take(count - 5 - 1) //Take All except last line
                        .Where(x => !x.Contains("---")) // Ignore line header formatting
-                       .Select(x => x.Replace("Disk", ""))
-                       .Select(x => Regex.Replace(x, @"[\s](?<size>[A-Z]*B)", match => match.Groups["size"].Value))
-                       .Select(x => x.TrimStart())
-                       .Select(x => Regex.Replace(x, @"[ ]{1,}", ","))
-                       .Select(x => x.Split(','))
                        .Select(x => new Disk
                        {
-                           Num = int.Parse(x[0]),
-                           Status = x[1],
-                           Size = x[2],
-                           Free = x[3]
+                           Num = int.Parse(x.Substring(2, 8).Split(' ')[1]),
+                           Status = x.Substring(12,13).Trim().NullIfEmpty(),
+                           Size = x.Substring(27,7).Replace(" ","").Trim().NullIfEmpty(),
+                           Free = x.Substring(36,7).Replace(" ","").Trim().NullIfEmpty(),
+                           Dyn = x.Substring(45,3).Trim().NullIfEmpty(),
+                           Gpt = x.Substring(50,2).Trim().NullIfEmpty()
                        });
         }
 
