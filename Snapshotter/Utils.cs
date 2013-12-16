@@ -105,5 +105,6 @@ namespace CloudomanUtils
             Logger.Info("No snapshots found", "GetMySnapshots");
             return null;
         }
+
     }
 }
