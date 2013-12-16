@@ -11,13 +11,24 @@ namespace CloudomanUtils
     {
         public ScratchPad()
         {
+
+
+            var allDevices = Enumerable.Range('f', 'p'-'f' +1 ).Select(x => "xvd" + (char) x);
+            var usedDevices = new[] {"xvdf", "xvdg","svdp"};
+
+            var a = new BlockDeviceMapping();
+            
+            var freeDevices = allDevices.Except(usedDevices);
+
+            freeDevices.ToList().ForEach(Console.WriteLine);
+            Environment.Exit(0);
+
             var diskPart = new DiskPart();
             var disks = diskPart.ListDisk();
 
             //diskPart.OnlineDisk(2);
             diskPart.AssignDriveLetter(3, "H");
 
-            Environment.Exit(0);
             
             disks.ToList().ForEach(x =>
             {

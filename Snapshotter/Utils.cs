@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using Amazon.EC2.Model;
 using Amazon.EC2;
@@ -104,6 +105,22 @@ namespace CloudomanUtils
             if (snapshots.Count != 0) return snapshots;
             Logger.Info("No snapshots found", "GetMySnapshots");
             return null;
+        }
+
+        public IEnumerable<string> GetFreeDevices(AmazonEC2 ec2Client)
+        {
+            var allDevices = Enumerable.Range('f', 'p' - 'f' + 1).Select(x => "xvd" + (char)x);
+
+            var request = new DescribeInstancesRequest {InstanceId = new List<string>{_instanceId}};
+
+            return allDevices.Except(
+                    ec2Client.DescribeInstances(request)
+                        .DescribeInstancesResult
+                        .Reservation.First()
+                        .RunningInstance.First()
+                        .BlockDeviceMapping
+                        .Select(x => x.DeviceName)
+            );
         }
 
     }
