@@ -13,6 +13,11 @@ namespace CloudomanUtils
         {
             var diskPart = new DiskPart();
             var disks = diskPart.ListDisk();
+
+            //diskPart.OnlineDisk(2);
+            diskPart.AssignDriveLetter(3, "H");
+
+            Environment.Exit(0);
             
             disks.ToList().ForEach(x =>
             {
@@ -38,6 +43,8 @@ namespace CloudomanUtils
                 Console.WriteLine("Info:" + x.Info) ;
                 Console.WriteLine("-------------------------------");
             });
+
+            
         }
 
     }

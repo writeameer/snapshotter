@@ -13,14 +13,42 @@ namespace Cloudoman.DiskPart
 {
     public class DiskPart
     {
-        readonly ProcessStartInfo _psInfo = new ProcessStartInfo
-        {
-            FileName = @"c:\windows\System32\WindowsPowerShell\v1.0\powershell.exe",
-            RedirectStandardError = true,
-            RedirectStandardOutput = true,
-            UseShellExecute = false
-        };
+        readonly ProcessStartInfo _psInfo;
 
+        public DiskPart()
+        {
+            _psInfo = new ProcessStartInfo{
+                FileName = @"c:\windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false
+            };
+        }
+
+        /// <summary>
+        /// Runs a diskpart command
+        /// </summary>
+        /// <param name="command">diskpart command. For e.g. list disks</param>
+        /// <returns></returns>
+        public string[] RunCommand(string command)
+        {
+            // Genereate powershell command
+            // To pipe commands to diskpart
+            var cmd = "\"Write-Output \"\"" + command + "\"\"\" | diskpart";
+            var arguments = String.Format(" -command {0}", cmd);
+            _psInfo.Arguments = arguments;
+
+            // Get ouput from diskpart
+            var process = Process.Start(_psInfo);
+            process.WaitForExit();
+
+            var rawOutput =
+                process.StandardOutput.ReadToEnd()
+                       .Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Return output
+            return rawOutput;
+        }
 
         public IEnumerable<Volume> ListVolume()
         {
@@ -64,24 +92,48 @@ namespace Cloudoman.DiskPart
                        });
         }
 
-        public string[] RunCommand(string command)
+        public bool OnlineDisk(int diskNumber)
         {
-            var cmd = "\"Write-Output \"\"" + command + "\"\"\" | diskpart";
-            var arguments = String.Format(" -command {0}", cmd);
-            _psInfo.Arguments = arguments;
+            var status = false;
+            var command = @"
+                select disk $diskNumber
+                online disk NOERR
+                attributes disk clear readonly NOERR
+                EXIT
+            ";
+            command = command.Replace("$diskNumber", diskNumber.ToString());
 
-            // Get ouput from diskpart
-            var process = Process.Start(_psInfo);
-            process.WaitForExit();
+            var output = RunCommand(command);
 
-            var rawOutput = 
-                process.StandardOutput.ReadToEnd()
-                       .Split(new [] {"\n", "\r\n"}, StringSplitOptions.RemoveEmptyEntries);
+            output.Dump();
+            var message = "successfully onlined the selected disk";
+            status = (output.ToList().Where(x => x.Contains(message)).Count() > 0 );
 
-            Console.WriteLine("-----------------------------");
-            rawOutput.ToList().ForEach(Console.WriteLine);
-            Console.WriteLine("-----------------------------\n\n");
-            return rawOutput;
+            return status;
         }
+
+        public bool AssignDriveLetter(int volumeNumber, string letter)
+        {
+            var status = false;
+            var command = @"
+                select volume $volumeNumber
+                assign letter $letter NOERR
+                EXIT
+            ";
+
+            command = command.Replace("$volumeNumber", volumeNumber.ToString());
+            command = command.Replace("$letter", letter.ToUpper());
+            Console.WriteLine(command);
+
+            var output = RunCommand(command);
+            output.Dump();
+
+            var message = "successfully assigned the drive letter";
+            status = (output.ToList().Where(x => x.Contains(message)).Count() > 0);
+
+            return status;
+        }
+
+        
     }
 }
