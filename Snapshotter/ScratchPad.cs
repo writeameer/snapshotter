@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Amazon.EC2.Model;
 using Cloudoman.DiskPart;
+using Amazon.EC2;
+using Amazon;
 
 namespace CloudomanUtils
 {
@@ -12,15 +14,19 @@ namespace CloudomanUtils
         public ScratchPad()
         {
 
+            var snapshotter = new Snapshotter("web.prod");
 
-            var allDevices = Enumerable.Range('f', 'p'-'f' +1 ).Select(x => "xvd" + (char) x);
-            var usedDevices = new[] {"xvdf", "xvdg","svdp"};
+            snapshotter.List();
 
-            var a = new BlockDeviceMapping();
+            Environment.Exit(0);
+
+            var ec2Config = new AmazonEC2Config { ServiceURL = Utils.Ec2Region };
+            var ec2Client = AWSClientFactory.CreateAmazonEC2Client(ec2Config);
+
+            var devices = Utils.GetFreeDevices(ec2Client);
+            devices.ToList().ForEach(Console.WriteLine);
+
             
-            var freeDevices = allDevices.Except(usedDevices);
-
-            freeDevices.ToList().ForEach(Console.WriteLine);
             Environment.Exit(0);
 
             var diskPart = new DiskPart();

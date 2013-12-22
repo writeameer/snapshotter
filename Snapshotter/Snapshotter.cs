@@ -5,7 +5,7 @@ using Amazon.EC2;
 using System.Collections.Generic;
 using Amazon;
 using Alphaleonis.Win32.Vss;
-
+using Amazon.Util;
 
 namespace CloudomanUtils
 {
@@ -15,10 +15,11 @@ namespace CloudomanUtils
         readonly string _snapshotName;
         readonly string _instanceId;
         readonly string _serverNameTag;
+        readonly string _backupName;
         List<VolumeInfo> _backupVolumes;
         List<SnapshotInfo> _snapShots;
 
-        public Snapshotter()
+        public Snapshotter(string backupName)
 	    {
             // Create EC2 Client using IAM creds if none found in app.config
             var ec2Config = new AmazonEC2Config { ServiceURL = Utils.Ec2Region };
@@ -28,6 +29,7 @@ namespace CloudomanUtils
             _instanceId = new System.Net.WebClient().DownloadString("http://169.254.169.254/latest/meta-data/instance-id");
             _serverNameTag = Utils.GetServerTag(_ec2Client, "Name");
             _snapshotName = "Snapshotter Backup: " + _serverNameTag;
+            _backupName = backupName;
 	    }
 
         public void DoBackup()
@@ -37,9 +39,12 @@ namespace CloudomanUtils
             var volumes = Utils.GetMyVolumes(_ec2Client);
             _backupVolumes = volumes.Where(v => v.Attachment[0].Device != "/dev/sda1").Select(x => new VolumeInfo
             {
-                Device = x.Attachment[0].Device,
                 VolumeId = x.Attachment[0].VolumeId,
-                Drive = x.Tag.Where(t => t.Key == "Drive").Select(d => d.Value).FirstOrDefault()
+                Device = x.Attachment[0].Device,
+                Drive = x.Tag.Where(t => t.Key == "Drive").Select(d => d.Value).FirstOrDefault(),
+                ServerName = _serverNameTag,
+                BackupName = _backupName,
+                TimeStamp =  AWSSDKUtils.FormattedCurrentTimestampRFC822 
             }).ToList();
 
 
@@ -75,7 +80,7 @@ namespace CloudomanUtils
             // Ensure the instance has a "Name" tag for identifying server
             if (String.IsNullOrEmpty(_serverNameTag))
             {
-                Logger.Error("This Instance must be tagged with a server name before it's volumes can be snapshotted.\nExitting.", "SnapshotBackup");
+                Logger.Error("This Instance must be tagged with a server name before it's volumes can be snapshotted.\nExitting.", "CheckBackupPreReqs");
                 return false;
             }
 
@@ -83,7 +88,7 @@ namespace CloudomanUtils
             // excluding boot volume
             if (_backupVolumes.Count() == 0)
             {
-                Logger.Error("No EBS volumes excluding boot drive were found for snapshotting.\nExitting.", "SnapshotBackup");
+                Logger.Error("No EBS volumes excluding boot drive were found for snapshotting.\nExitting.", "CheckBackupPreReqs");
                 return false;
             }
 
@@ -93,18 +98,22 @@ namespace CloudomanUtils
             if (missingDriveLetters.Count() > 0)
             {
                 var volumes = string.Join(",", missingDriveLetters.Select(x => x.VolumeId));
-                Logger.Error("All volumes must be tagged with EC2 resource tags marking their drive letter. For E.g. Key='Drive', Value='H'.", "SnapshotBackup");
+                Logger.Error("All volumes must be tagged with EC2 resource tags marking their drive letter. For E.g. Key='Drive', Value='H'.", "CheckBackupPreReqs");
                 Logger.Error("The following volumes:", "SnapshotBackup");
                 Logger.Error( volumes, "SnapshotBackup");
-                Logger.Error(" do not contain EC2 resource tags marking their drive letter.\nExitting.", "SnapshotBackup");
+                Logger.Error(" do not contain EC2 resource tags marking their drive letter.\nExitting.", "CheckBackupPreReqs");
                 return false;
             }
 
+            if (_backupName == null)
+            {
+                Logger.Error("A BackupName for the snapshots MUST be specified. Exitting...","CheckBackupPreReqs");
+            }
             return true;
         }
 
 
-        void SnapshotVolume(VolumeInfo backupVolumeInfo, string timeStamp)
+        void SnapshotVolume(VolumeInfo backupVolumeInfo)
         {
 
 
@@ -120,18 +129,21 @@ namespace CloudomanUtils
 
                 var response = _ec2Client.CreateSnapshot(request);
                 var snapshotId = response.CreateSnapshotResult.Snapshot.SnapshotId;
+                
+                Logger.Info("Created Snapshot:" + snapshotId + " for Volume Id:" +  backupVolumeInfo.VolumeId , "SnapShotVolume");
 
                 // Tag Snapshot
                 var tagRequest = new CreateTagsRequest {
                     ResourceId = new List<string> {snapshotId},
                     Tag = new List<Tag>{
-                        new Tag {Key = "TimeStamp", Value = timeStamp},
-                        new Tag {Key = "ServerName", Value = _serverNameTag},
+                        new Tag {Key = "TimeStamp", Value = backupVolumeInfo.TimeStamp},
+                        new Tag {Key = "ServerName", Value = backupVolumeInfo.ServerName},
                         new Tag {Key = "VolumeId", Value = backupVolumeInfo.VolumeId},
                         new Tag {Key = "InstanceId", Value = _instanceId},
                         new Tag {Key = "DeviceName", Value = backupVolumeInfo.Device},
                         new Tag {Key = "Drive", Value = backupVolumeInfo.Drive},
-                        new Tag {Key = "Name", Value = _snapshotName}
+                        new Tag {Key = "Name", Value = _snapshotName},
+                        new Tag {Key = "BackupName", Value = _backupName}
                     }
                 };
 
@@ -165,8 +177,9 @@ namespace CloudomanUtils
                 vss.AddToSnapshotSet(driveName);
                 vss.PrepareForBackup();
                 vss.DoSnapshotSet();
+
                 // Snapshot Volume
-                SnapshotVolume(x, timeStamp);
+                SnapshotVolume(x);
 
                 // Abort VSS Backup
                 vss.AbortBackup();

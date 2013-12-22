@@ -84,18 +84,18 @@ namespace CloudomanUtils
             return null;
         }
 
-        public static List<Snapshot> GetMySnapshots(AmazonEC2 ec2Client, string serverName)
+        public static List<Snapshot> GetMySnapshots(AmazonEC2 ec2Client, string backupName)
         {
             var filters = new List<Filter> {
                 new Filter
                 {
                     Name = "tag-key",
-                    Value = new List<string> { "ServerName" }
+                    Value = new List<string> { "BackupName" }
                 },
                 new Filter
                 {
                     Name = "tag-value",
-                    Value = new List<string> { serverName }
+                    Value = new List<string> { backupName }
                 }
             };
 
@@ -107,11 +107,12 @@ namespace CloudomanUtils
             return null;
         }
 
-        public IEnumerable<string> GetFreeDevices(AmazonEC2 ec2Client)
+        public static IEnumerable<string> GetFreeDevices(AmazonEC2 ec2Client)
         {
+            // All devices are xvdf-xvdp
             var allDevices = Enumerable.Range('f', 'p' - 'f' + 1).Select(x => "xvd" + (char)x);
 
-            var request = new DescribeInstancesRequest {InstanceId = new List<string>{_instanceId}};
+            var request = new DescribeInstancesRequest {InstanceId = new List<string>{InstanceId}};
 
             return allDevices.Except(
                     ec2Client.DescribeInstances(request)

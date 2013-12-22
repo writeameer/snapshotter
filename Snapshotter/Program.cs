@@ -16,8 +16,6 @@ namespace CloudomanUtils
             new ScratchPad();
             Environment.Exit(0);
 
-            var operation="";
-
             Logger.Info("Job Started", "main");
 
             // Create Snapshots
@@ -26,10 +24,12 @@ namespace CloudomanUtils
                 // Get arguments if any
                 var parsed = Args.Parse<MyArgs>(args);
 
-                operation = parsed.Operation.ToString(); ;
+                var operation = parsed.Operation.ToString();
+                var backupName = parsed.BackupName;
 
                 // Create Snapshotter object 
-                var snapShotter=new Snapshotter();
+
+                var snapShotter = new Snapshotter(backupName);
 
                 // Run backup or restore
                 if (operation == "backup")

@@ -25,3 +25,21 @@
    at CloudomanUtils.Snapshotter..ctor() in c:\temp\Snapshotter\Snapshotter.cs:line 29
    at CloudomanUtils.Program.Main(String[] args) in c:\temp\Snapshotter\Program.cs:line 34
 2013-12-14 10:52:12,002	info	main	Job Ended
+2013-12-18 02:07:01,780	info	main	Job Started
+2013-12-18 02:07:01,998	info	main	Job Ended
+2013-12-18 02:09:07,954	info	main	Job Started
+2013-12-18 02:09:08,293	info	main	Job Ended
+2013-12-18 02:09:27,020	info	main	Job Started
+2013-12-18 02:09:27,238	info	main	Job Ended
+2013-12-18 02:13:28,854	info	main	Job Started
+2013-12-18 02:13:33,151	info	SnapShotVolume	Server web:i-e0ac60bd Volume Id:vol-c92e2ee0 was snapshotted and tagged.
+2013-12-18 02:13:37,538	info	SnapShotVolume	Server web:i-e0ac60bd Volume Id:vol-c32e2eea was snapshotted and tagged.
+2013-12-18 02:13:37,539	info	main	Job Ended
+2013-12-18 02:17:40,729	info	main	Job Started
+2013-12-18 02:17:43,543	info	SnapShotVolume	Created Snapshot:snap-5a1f5a50 for Volume Id:vol-c92e2ee0
+2013-12-18 02:17:43,847	info	SnapShotVolume	Server web:i-e0ac60bd Volume Id:vol-c92e2ee0 was snapshotted and tagged.
+2013-12-18 02:17:46,405	info	SnapShotVolume	Created Snapshot:snap-531f5a59 for Volume Id:vol-c32e2eea
+2013-12-18 02:17:46,625	info	SnapShotVolume	Server web:i-e0ac60bd Volume Id:vol-c32e2eea was snapshotted and tagged.
+2013-12-18 02:17:46,626	info	main	Job Ended
+2013-12-18 08:33:39,486	info	main	Job Started
+2013-12-18 08:33:39,681	info	main	Job Ended
