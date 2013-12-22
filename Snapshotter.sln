@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snapshotter", "snapshotter\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiskPart", "DiskPart\DiskPart.csproj", "{C60E1DEE-5799-4D75-9559-5849A0256E9D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snapshotter.Test", "Snapshotter.Test\Snapshotter.Test.csproj", "{87F82826-2EE6-4289-ABAA-45A123D0009C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C60E1DEE-5799-4D75-9559-5849A0256E9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C60E1DEE-5799-4D75-9559-5849A0256E9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C60E1DEE-5799-4D75-9559-5849A0256E9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87F82826-2EE6-4289-ABAA-45A123D0009C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87F82826-2EE6-4289-ABAA-45A123D0009C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87F82826-2EE6-4289-ABAA-45A123D0009C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87F82826-2EE6-4289-ABAA-45A123D0009C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

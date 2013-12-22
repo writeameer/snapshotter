@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using Amazon;
 using Alphaleonis.Win32.Vss;
 using Amazon.Util;
+using CloudomanUtils.Model;
+using CloudomanUtils.Models;
 
 namespace CloudomanUtils
 {

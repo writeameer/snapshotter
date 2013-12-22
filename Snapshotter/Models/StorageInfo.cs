@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CloudomanUtils
+﻿namespace CloudomanUtils.Models
 {
-    public class VolumeInfo
+    public class StorageInfo
     {
-        public string VolumeId { get; set; }
         public string Device { get; set; }
         public string Drive { get; set; }
         public string TimeStamp { get; set; }

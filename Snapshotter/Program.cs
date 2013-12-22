@@ -1,10 +1,5 @@
 ﻿using System;
-using CloudomanUtils.powerargs;
 using PowerArgs;
-using Amazon.EC2.Model;
-using System.Collections.Generic;
-using Amazon.EC2;
-using Amazon;
 
 namespace CloudomanUtils
 {
@@ -12,9 +7,6 @@ namespace CloudomanUtils
     {
         static void Main(string[] args)
         {
-
-            new ScratchPad();
-            Environment.Exit(0);
 
             Logger.Info("Job Started", "main");
 
@@ -42,7 +34,7 @@ namespace CloudomanUtils
             }
             catch (Exception ex)
             {
-                if (ex is ArgumentException || ex is PowerArgs.UnexpectedArgException || ex is PowerArgs.MissingArgException)
+                if (ex is ArgumentException || ex is UnexpectedArgException || ex is MissingArgException)
                     ArgUsage.GetStyledUsage<MyArgs>().Write();
                 else
                     Logger.Error(ex.ToString(), "main");
