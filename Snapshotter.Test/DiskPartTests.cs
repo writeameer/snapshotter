@@ -54,16 +54,22 @@ namespace Cloudoman.AwsTools.Test
         public void OnlineDisk()
         {
             var firstDisk = _diskPart.ListDisk().FirstOrDefault();
-            var status = firstDisk != null && _diskPart.OnlineDisk(firstDisk.Num);
-            Assert.True(status);
+            if (firstDisk == null) Assert.Fail();
+            var response = _diskPart.OnlineDisk(firstDisk.Num);
+            response.Output.Dump();
+            Assert.True(response.Status);
         }
 
         [Test]
         public void AssignDriveLetter()
         {
             var bootVolume = _diskPart.ListVolume().FirstOrDefault(x => x.Info == "Boot");
-            var status = bootVolume != null && _diskPart.AssignDriveLetter(bootVolume.Num, bootVolume.Letter);
-            Assert.False(status);
+            if (bootVolume != null)
+            {
+                var response = _diskPart.AssignDriveLetter(bootVolume.Num, bootVolume.Letter);
+                response.Output.Dump();
+                Assert.False(response.Status);
+            }
         }
     }
 }

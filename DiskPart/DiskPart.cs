@@ -90,7 +90,7 @@ namespace Cloudoman.DiskTools
                        });
         }
 
-        public bool OnlineDisk(int diskNumber)
+        public DiskPartResponse OnlineDisk(int diskNumber)
         {
             var status = false;
             var command = @"
@@ -103,15 +103,18 @@ namespace Cloudoman.DiskTools
 
             var output = RunCommand(command);
 
-            output.Dump();
             var message = "successfully onlined the selected disk".ToLower();
             var message2 = "This disk is already online".ToLower();
             status = (output.ToList().Any(x => x.ToLower().Contains(message) || x.ToLower().Contains(message2)) );
 
-            return status;
+            return new DiskPartResponse
+            {
+                Status = status,
+                Output = output
+            };
         }
 
-        public bool AssignDriveLetter(int volumeNumber, string letter)
+        public DiskPartResponse AssignDriveLetter(int volumeNumber, string letter)
         {
             var status = false;
             var command = @"
@@ -125,12 +128,15 @@ namespace Cloudoman.DiskTools
             Console.WriteLine(command);
 
             var output = RunCommand(command);
-            output.Dump();
 
             var message = "successfully assigned the drive letter";
             status = (output.ToList().Any(x => x.Contains(message)));
 
-            return status;
+            return new DiskPartResponse
+            {
+                Status = status,
+                Output = output
+            };
         }
 
         
