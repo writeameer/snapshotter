@@ -3,7 +3,7 @@ using System.Linq;
 using Amazon;
 using PowerArgs;
 
-namespace CloudomanUtils.powerargs
+namespace Cloudoman.AwsTools.Powerargs
 {
 
     // <summary> 

@@ -1,7 +1,9 @@
 ﻿using System;
+using Cloudoman.AwsTools.Helpers;
+using Cloudoman.AwsTools.Powerargs;
 using PowerArgs;
 
-namespace CloudomanUtils
+namespace Cloudoman.AwsTools
 {
     class Program
     {
@@ -15,20 +17,22 @@ namespace CloudomanUtils
             {
                 // Get arguments if any
                 var parsed = Args.Parse<MyArgs>(args);
-
-                var operation = parsed.Operation.ToString();
+                var operation = parsed.Operation.ToString().ToLower();
                 var backupName = parsed.BackupName;
 
                 // Create Snapshotter object 
 
-                var snapShotter = new Snapshotter(backupName);
+                var snapShotter = new AwsTools.Snapshotter(backupName);
 
                 // Run backup or restore
-                if (operation == "backup")
-                    snapShotter.DoBackup();
-                else
+                switch (operation)
                 {
-                    //snapShotter.DoRestore();
+                    case "backup":
+                        snapShotter.DoBackup();
+                        break;
+                    case "restore":
+                        snapShotter.DoRestore();
+                        break;
                 }
 
             }

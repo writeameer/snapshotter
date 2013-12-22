@@ -1,14 +1,15 @@
 using System;
-using System.Linq;
-using Amazon.EC2.Model;
-using Amazon.EC2;
 using System.Collections.Generic;
-using Amazon;
+using System.Linq;
 using Alphaleonis.Win32.Vss;
+using Amazon;
+using Amazon.EC2;
+using Amazon.EC2.Model;
 using Amazon.Util;
-using CloudomanUtils.Models;
+using Cloudoman.AwsTools.Helpers;
+using Cloudoman.AwsTools.Models;
 
-namespace CloudomanUtils
+namespace Cloudoman.AwsTools
 {
 	public class Snapshotter
 	{
@@ -33,6 +34,10 @@ namespace CloudomanUtils
             _backupName = backupName;
 	    }
 
+	    public void DoRestore()
+	    {
+	        Console.WriteLine("Doing Restore!");
+	    }
         public void DoBackup()
         {
 

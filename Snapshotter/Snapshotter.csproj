@@ -7,7 +7,7 @@
     <ProjectGuid>{33481A0F-783C-40D3-BBDC-EF99DBB9A9E8}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CloudomanUtils</RootNamespace>
+    <RootNamespace>Cloudoman.AwsTools</RootNamespace>
     <AssemblyName>Snapshotter</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -77,21 +77,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Ec2Region.cs" />
-    <Compile Include="Logger.cs" />
+    <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Models\SnapshotInfo.cs" />
     <Compile Include="Models\StorageInfo.cs" />
     <Compile Include="Models\VolumeInfo.cs" />
-    <Compile Include="MyArgs.cs" />
-    <Compile Include="Operation.cs" />
+    <Compile Include="Powerargs\Operation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScratchPad.cs" />
-    <Compile Include="SnapshotInfo.cs" />
     <Compile Include="Snapshotter.cs" />
-    <Compile Include="powerargs\Ec2Region.cs" />
-    <Compile Include="powerargs\MyArgs.cs" />
-    <Compile Include="Utils.cs" />
+    <Compile Include="Powerargs\Ec2Region.cs" />
+    <Compile Include="Powerargs\MyArgs.cs" />
+    <Compile Include="Helpers\Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -1,4 +1,4 @@
-﻿namespace CloudomanUtils.Models
+﻿namespace Cloudoman.AwsTools.Models
 {
     public class VolumeInfo: StorageInfo
     {

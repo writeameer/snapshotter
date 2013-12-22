@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Cloudoman.Diskpart
+namespace Cloudoman.DiskTools
 {
     public static class Extensions
     {

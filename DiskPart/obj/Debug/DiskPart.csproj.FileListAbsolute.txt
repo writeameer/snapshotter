@@ -3,13 +3,13 @@ C:\Users\admin\Documents\GitHub\DiskPart\bin\Debug\Cloudoman.Diskpart.dll
 C:\Users\admin\Documents\GitHub\DiskPart\bin\Debug\Cloudoman.Diskpart.pdb
 C:\Users\admin\Documents\GitHub\DiskPart\obj\Debug\Cloudoman.Diskpart.dll
 C:\Users\admin\Documents\GitHub\DiskPart\obj\Debug\Cloudoman.Diskpart.pdb
-C:\Users\admin\Documents\GitHub\snapshotter\DiskPart\bin\Debug\Cloudoman.Diskpart.dll
-C:\Users\admin\Documents\GitHub\snapshotter\DiskPart\bin\Debug\Cloudoman.Diskpart.pdb
 C:\Users\admin\Documents\GitHub\snapshotter\DiskPart\obj\Debug\DiskPart.csprojResolveAssemblyReference.cache
-C:\Users\admin\Documents\GitHub\snapshotter\DiskPart\obj\Debug\Cloudoman.Diskpart.dll
-C:\Users\admin\Documents\GitHub\snapshotter\DiskPart\obj\Debug\Cloudoman.Diskpart.pdb
 C:\temp\Snapshotter\DiskPart\bin\Debug\Cloudoman.Diskpart.dll
 C:\temp\Snapshotter\DiskPart\bin\Debug\Cloudoman.Diskpart.pdb
 C:\temp\Snapshotter\DiskPart\obj\Debug\DiskPart.csprojResolveAssemblyReference.cache
 C:\temp\Snapshotter\DiskPart\obj\Debug\Cloudoman.Diskpart.dll
 C:\temp\Snapshotter\DiskPart\obj\Debug\Cloudoman.Diskpart.pdb
+C:\Users\admin\Documents\GitHub\Snapshotter\DiskPart\bin\Debug\Diskpart.dll
+C:\Users\admin\Documents\GitHub\Snapshotter\DiskPart\bin\Debug\Diskpart.pdb
+C:\Users\admin\Documents\GitHub\Snapshotter\DiskPart\obj\Debug\Diskpart.dll
+C:\Users\admin\Documents\GitHub\Snapshotter\DiskPart\obj\Debug\Diskpart.pdb

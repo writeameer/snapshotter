@@ -7,8 +7,8 @@
     <ProjectGuid>{C60E1DEE-5799-4D75-9559-5849A0256E9D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cloudoman.Diskpart</RootNamespace>
-    <AssemblyName>Cloudoman.Diskpart</AssemblyName>
+    <RootNamespace>Cloudoman.DiskTools</RootNamespace>
+    <AssemblyName>Diskpart</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -40,12 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\ListDiskResult.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Models\Disk.cs" />
     <Compile Include="DiskPart.cs" />
-    <Compile Include="Commands\ListDisksCommand.cs" />
-    <Compile Include="Commands\ListVolumes.cs" />
     <Compile Include="Models\Volume.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

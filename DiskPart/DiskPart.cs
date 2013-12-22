@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Cloudoman.Diskpart;
-using Cloudoman.DiskPart.Commands;
 using Cloudoman.Diskpart.Models;
 
-namespace Cloudoman.DiskPart
+namespace Cloudoman.DiskTools
 {
     public class DiskPart
     {
@@ -21,7 +17,9 @@ namespace Cloudoman.DiskPart
                 FileName = @"c:\windows\System32\WindowsPowerShell\v1.0\powershell.exe",
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                UseShellExecute = false
+                UseShellExecute = false,
+                CreateNoWindow = false,
+                WindowStyle = ProcessWindowStyle.Hidden
             };
         }
 
@@ -40,11 +38,12 @@ namespace Cloudoman.DiskPart
 
             // Get ouput from diskpart
             var process = Process.Start(_psInfo);
+            if (process == null) return null;
             process.WaitForExit();
 
             var rawOutput =
                 process.StandardOutput.ReadToEnd()
-                       .Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    .Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
             // Return output
             return rawOutput;
@@ -106,8 +105,9 @@ namespace Cloudoman.DiskPart
             var output = RunCommand(command);
 
             output.Dump();
-            var message = "successfully onlined the selected disk";
-            status = (output.ToList().Where(x => x.Contains(message)).Count() > 0 );
+            var message = "successfully onlined the selected disk".ToLower();
+            var message2 = "This disk is already online".ToLower();
+            status = (output.ToList().Any(x => x.ToLower().Contains(message) || x.ToLower().Contains(message2)) );
 
             return status;
         }
@@ -129,7 +129,7 @@ namespace Cloudoman.DiskPart
             output.Dump();
 
             var message = "successfully assigned the drive letter";
-            status = (output.ToList().Where(x => x.Contains(message)).Count() > 0);
+            status = (output.ToList().Any(x => x.Contains(message)));
 
             return status;
         }

@@ -1,7 +1,7 @@
-﻿namespace CloudomanUtils.Models
+﻿namespace Cloudoman.AwsTools.Models
 {
     public class SnapshotInfo : StorageInfo
     {
-        public string VolumeId { get; set; }
+        public string SnapshotId { get; set; }
     }
 }

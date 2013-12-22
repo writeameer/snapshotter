@@ -86,3 +86,5 @@ Parameter name: source
 2013-12-22 06:48:52,060	info	SnapShotVolume	Created Snapshot:snap-aec78ea4 for Volume Id:vol-c32e2eea
 2013-12-22 06:48:52,255	info	SnapShotVolume	Server web:i-e0ac60bd Volume Id:vol-c32e2eea was snapshotted and tagged.
 2013-12-22 06:48:52,258	info	main	Job Ended
+2013-12-22 18:59:52,531	info	main	Job Started
+2013-12-22 18:59:52,922	info	main	Job Ended

@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
-using Amazon.EC2.Model;
-using Cloudoman.DiskPart;
-using Amazon.EC2;
 using Amazon;
+using Amazon.EC2;
+using Cloudoman.AwsTools.Helpers;
+using Cloudoman.DiskTools;
 
-namespace CloudomanUtils
+namespace Cloudoman.AwsTools
 {
     public class ScratchPad
     {
         public ScratchPad()
         {
 
-            var snapshotter = new Snapshotter("web.prod");
+            var snapshotter = new AwsTools.Snapshotter("web.prod");
 
             snapshotter.List();
 
@@ -36,30 +34,7 @@ namespace CloudomanUtils
             diskPart.AssignDriveLetter(3, "H");
 
             
-            disks.ToList().ForEach(x =>
-            {
-                Console.WriteLine("Num:" + x.Num);
-                Console.WriteLine("Status:"+ x.Status);
-                Console.WriteLine("Size:" + x.Size);
-                Console.WriteLine("Free:" + x.Free) ;
-                Console.WriteLine("Dyn:"+ x.Dyn);
-                Console.WriteLine("Gpt:" + x.Gpt);
 
-            });
-
-            var volumes = diskPart.ListVolume();
-            volumes.ToList().ForEach(x =>
-            {
-                Console.WriteLine("Num:" + x.Num);
-                Console.WriteLine("Letter:"+ x.Letter);
-                Console.WriteLine("Label:" + x.Label);
-                Console.WriteLine("FileSystem:" + x.FileSystem) ;
-                Console.WriteLine("Type:"+ x.Type);
-                Console.WriteLine("Size:" + x.Size);
-                Console.WriteLine("Status:" + x.Status) ;
-                Console.WriteLine("Info:" + x.Info) ;
-                Console.WriteLine("-------------------------------");
-            });
 
             
         }
