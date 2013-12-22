@@ -5,3 +5,10 @@ C:\Users\admin\Documents\GitHub\Snapshotter\Snapshotter.Test\obj\Debug\Snapshott
 C:\Users\admin\Documents\GitHub\Snapshotter\Snapshotter.Test\obj\Debug\Snapshotter.Test.pdb
 C:\Users\admin\Documents\GitHub\Snapshotter\Snapshotter.Test\bin\Debug\nunit.framework.dll
 C:\Users\admin\Documents\GitHub\Snapshotter\Snapshotter.Test\bin\Debug\nunit.framework.xml
+C:\temp\snapshotter\Snapshotter.Test\bin\Debug\Snapshotter.Test.dll
+C:\temp\snapshotter\Snapshotter.Test\bin\Debug\Snapshotter.Test.pdb
+C:\temp\snapshotter\Snapshotter.Test\bin\Debug\nunit.framework.dll
+C:\temp\snapshotter\Snapshotter.Test\bin\Debug\nunit.framework.xml
+C:\temp\snapshotter\Snapshotter.Test\obj\Debug\Snapshotter.Test.csprojResolveAssemblyReference.cache
+C:\temp\snapshotter\Snapshotter.Test\obj\Debug\Snapshotter.Test.dll
+C:\temp\snapshotter\Snapshotter.Test\obj\Debug\Snapshotter.Test.pdb

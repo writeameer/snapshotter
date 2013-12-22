@@ -43,3 +43,46 @@
 2013-12-18 02:17:46,626	info	main	Job Ended
 2013-12-18 08:33:39,486	info	main	Job Started
 2013-12-18 08:33:39,681	info	main	Job Ended
+2013-12-22 06:40:28,987	info	main	Job Started
+2013-12-22 06:40:29,155	info	main	Job Ended
+2013-12-22 06:40:33,314	info	main	Job Started
+2013-12-22 06:40:33,421	error	main	PowerArgs.ArgException: Invalid Operation Specified. Must be 'backup' or 'restore': backpu
+   at PowerArgs.Extensions.Revive(PropertyInfo prop, Object toRevive, HookContext context)
+   at PowerArgs.Args.PopulateProperties(HookContext context)
+   at PowerArgs.Args.ParseInternal(Type t, String[] input)
+   at PowerArgs.Args.ParseInternal[T](String[] input)
+   at PowerArgs.Args.ParseAction[T](String[] args)
+   at PowerArgs.Args.Parse[T](String[] args)
+   at CloudomanUtils.Program.Main(String[] args) in c:\temp\snapshotter\Snapshotter\Program.cs:line 17
+2013-12-22 06:40:33,421	info	main	Job Ended
+2013-12-22 06:40:36,715	info	main	Job Started
+2013-12-22 06:40:36,908	info	main	Job Ended
+2013-12-22 06:40:56,425	info	main	Job Started
+2013-12-22 06:40:57,813	info	GetMyVolumes	No attached volumes were found
+2013-12-22 06:40:57,927	info	main	Job Ended
+2013-12-22 06:41:23,984	info	main	Job Started
+2013-12-22 06:41:25,332	info	GetMyVolumes	No attached volumes were found
+2013-12-22 06:41:25,445	info	main	Job Ended
+2013-12-22 06:41:59,131	info	main	Job Started
+2013-12-22 06:42:00,423	info	GetMyVolumes	No attached volumes were found
+2013-12-22 06:42:00,502	info	main	Job Ended
+2013-12-22 06:42:24,175	info	main	Job Started
+2013-12-22 06:42:54,550	info	GetMyVolumes	No attached volumes were found
+2013-12-22 06:43:45,102	info	main	Job Started
+2013-12-22 06:45:35,106	info	GetMyVolumes	No attached volumes were found
+2013-12-22 06:48:02,420	info	main	Job Started
+2013-12-22 06:48:02,632	info	main	Job Ended
+2013-12-22 06:48:08,139	info	main	Job Started
+2013-12-22 06:48:09,427	info	GetMyVolumes	No attached volumes were found
+2013-12-22 06:48:09,433	error	main	System.ArgumentNullException: Value cannot be null.
+Parameter name: source
+   at System.Linq.Enumerable.Where[TSource](IEnumerable`1 source, Func`2 predicate)
+   at CloudomanUtils.Snapshotter.DoBackup() in c:\temp\snapshotter\Snapshotter\Snapshotter.cs:line 41
+   at CloudomanUtils.Program.Main(String[] args) in c:\temp\snapshotter\Snapshotter\Program.cs:line 28
+2013-12-22 06:48:09,436	info	main	Job Ended
+2013-12-22 06:48:46,140	info	main	Job Started
+2013-12-22 06:48:48,818	info	SnapShotVolume	Created Snapshot:snap-92c78e98 for Volume Id:vol-c92e2ee0
+2013-12-22 06:48:49,057	info	SnapShotVolume	Server web:i-e0ac60bd Volume Id:vol-c92e2ee0 was snapshotted and tagged.
+2013-12-22 06:48:52,060	info	SnapShotVolume	Created Snapshot:snap-aec78ea4 for Volume Id:vol-c32e2eea
+2013-12-22 06:48:52,255	info	SnapShotVolume	Server web:i-e0ac60bd Volume Id:vol-c32e2eea was snapshotted and tagged.
+2013-12-22 06:48:52,258	info	main	Job Ended

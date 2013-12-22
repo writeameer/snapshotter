@@ -79,8 +79,9 @@
   <ItemGroup>
     <Compile Include="Ec2Region.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Model\SnapshotInfo.cs" />
-    <Compile Include="Model\StorageInfo.cs" />
+    <Compile Include="Models\SnapshotInfo.cs" />
+    <Compile Include="Models\StorageInfo.cs" />
+    <Compile Include="Models\VolumeInfo.cs" />
     <Compile Include="MyArgs.cs" />
     <Compile Include="Operation.cs" />
     <Compile Include="Program.cs" />
@@ -91,7 +92,6 @@
     <Compile Include="powerargs\Ec2Region.cs" />
     <Compile Include="powerargs\MyArgs.cs" />
     <Compile Include="Utils.cs" />
-    <Compile Include="Model\VolumeInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -1,6 +1,4 @@
-﻿using CloudomanUtils.Model;
-
-namespace CloudomanUtils.Models
+﻿namespace CloudomanUtils.Models
 {
     public class SnapshotInfo : StorageInfo
     {

@@ -34,7 +34,7 @@ namespace CloudomanUtils
             }
             catch (Exception ex)
             {
-                if (ex is ArgumentException || ex is UnexpectedArgException || ex is MissingArgException)
+                if (ex is UnexpectedArgException || ex is MissingArgException)
                     ArgUsage.GetStyledUsage<MyArgs>().Write();
                 else
                     Logger.Error(ex.ToString(), "main");
