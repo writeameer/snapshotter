@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Cloudoman.Diskpart;
-using Cloudoman.Diskpart.Models;
+using Cloudoman.DiskTools.Models;
 
 namespace Cloudoman.DiskTools
 {

@@ -1,4 +1,4 @@
-﻿namespace Cloudoman.Diskpart.Models
+﻿namespace Cloudoman.DiskTools.Models
 {
     public class Volume
     {
