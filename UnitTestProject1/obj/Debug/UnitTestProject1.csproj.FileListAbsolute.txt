@@ -1,0 +1,14 @@
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\UnitTestProject1.dll
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\UnitTestProject1.pdb
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\Diskpart.dll
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\Snapshotter.exe
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\PowerArgs.dll
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\AWSSDK.dll
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\AlphaVSS.Common.dll
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\Diskpart.pdb
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\Snapshotter.pdb
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\PowerArgs.xml
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\bin\Debug\AlphaVSS.Common.xml
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\obj\Debug\UnitTestProject1.csprojResolveAssemblyReference.cache
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\obj\Debug\UnitTestProject1.dll
+C:\Users\admin\Documents\GitHub\Snapshotter\UnitTestProject1\obj\Debug\UnitTestProject1.pdb

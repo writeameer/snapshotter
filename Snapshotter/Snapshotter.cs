@@ -62,7 +62,7 @@ namespace Cloudoman.AwsTools
             }
 
             // Snapshot volumes
-            BackupStuff();
+            BackupVolumes();
         }
 
         public void List()
@@ -92,7 +92,7 @@ namespace Cloudoman.AwsTools
 
             // Check instance has EBS volumes to snapshot
             // excluding boot volume
-            if (_backupVolumes.Count() == 0)
+            if (!_backupVolumes.Any())
             {
                 Logger.Error("No EBS volumes excluding boot drive were found for snapshotting.\nExitting.", "CheckBackupPreReqs");
                 return false;
@@ -164,7 +164,7 @@ namespace Cloudoman.AwsTools
 
         }
 
-        void BackupStuff()
+        void BackupVolumes()
         {
             
             // Create Timestamp for Backup Set

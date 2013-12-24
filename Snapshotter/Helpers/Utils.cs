@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Amazon;
 using Amazon.EC2;
 using Amazon.EC2.Model;
 
@@ -8,31 +10,34 @@ namespace Cloudoman.AwsTools.Helpers
 {
     public class Utils
     {
-        static string _instanceId;
-        static string _ec2Region;
 
-        static public string InstanceId
+        static readonly WebClient Web = new WebClient();
+
+        public static readonly AmazonEC2 Ec2Client;
+        public static readonly string InstanceId;
+        public static readonly string Ec2Region;
+
+
+        static Utils()
         {
-            get
-            {
-                if (_instanceId == null) _instanceId = new WebClient().DownloadString("http://169.254.169.254/latest/meta-data/instance-id");
-                return _instanceId;
-            }
+            InstanceId = GetInstanceId();
+            Ec2Region = GetEc2Region();
+
+            var ec2Config = new AmazonEC2Config { ServiceURL = Ec2Region };
+            Ec2Client = AWSClientFactory.CreateAmazonEC2Client(ec2Config);
         }
 
-        static public string Ec2Region
-        {
-            get
-            {
-                if (_ec2Region != null) return _ec2Region;
-                _ec2Region = (new WebClient()).DownloadString("http://169.254.169.254/latest/meta-data/placement/availability-zone");
-                _ec2Region = "https://ec2." + _ec2Region.Remove(_ec2Region.Length - 1) + ".amazonaws.com";
-                return _ec2Region;
-            }
-        }
-        
-        //static public AmazonEC2 EC2Client
+        static private readonly Func<string> GetInstanceId = () => Web.DownloadString("http://169.254.169.254/latest/meta-data/instance-id");
 
+        static private readonly Func<string> GetEc2Region = () =>
+        {
+            var availabilityZone =
+                Web.DownloadString("http://169.254.169.254/latest/meta-data/placement/availability-zone");
+            return "https://ec2." + availabilityZone.Remove(availabilityZone.Length - 1) + ".amazonaws.com";
+        };
+
+
+  
 
         public static string GetServerTag(AmazonEC2 ec2Client, string tagName)
         {
