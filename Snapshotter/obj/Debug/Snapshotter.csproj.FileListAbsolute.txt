@@ -89,13 +89,13 @@ C:\temp\Snapshotter\snapshotter\bin\Debug\AlphaVSS.60.x64.dll
 C:\temp\Snapshotter\snapshotter\bin\Debug\AlphaVSS.60.x86.dll
 C:\temp\Snapshotter\snapshotter\bin\Debug\AlphaVSS.Common.dll
 C:\temp\Snapshotter\snapshotter\bin\Debug\AWSSDK.dll
-C:\temp\Snapshotter\snapshotter\bin\Debug\Cloudoman.Diskpart.dll
 C:\temp\Snapshotter\snapshotter\bin\Debug\PowerArgs.dll
 C:\temp\Snapshotter\snapshotter\bin\Debug\SnapshotQuery.exe
-C:\temp\Snapshotter\snapshotter\bin\Debug\Cloudoman.Diskpart.pdb
 C:\temp\Snapshotter\snapshotter\bin\Debug\AlphaVSS.60.x86.xml
 C:\temp\Snapshotter\snapshotter\bin\Debug\AlphaVSS.Common.xml
 C:\temp\Snapshotter\snapshotter\bin\Debug\PowerArgs.xml
 C:\temp\Snapshotter\snapshotter\obj\Debug\Snapshotter.csprojResolveAssemblyReference.cache
 C:\Users\admin\Documents\GitHub\Snapshotter\snapshotter\bin\Debug\Diskpart.dll
 C:\Users\admin\Documents\GitHub\Snapshotter\snapshotter\bin\Debug\Diskpart.pdb
+C:\temp\snapshotter\snapshotter\bin\Debug\Diskpart.dll
+C:\temp\snapshotter\snapshotter\bin\Debug\Diskpart.pdb

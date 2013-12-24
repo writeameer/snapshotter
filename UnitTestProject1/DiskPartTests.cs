@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Linq;
 using Cloudoman.DiskTools;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Cloudoman.AwsTools.Test
 {
+    [TestClass]
     public class DiskPartTests
     {
         private readonly DiskPart _diskPart;
@@ -14,7 +15,7 @@ namespace Cloudoman.AwsTools.Test
             _diskPart = new DiskPart();
         }
 
-        [Test]
+        [TestMethod]
         public void ListDisks()
         {
             var disks = _diskPart.ListDisk();
@@ -31,7 +32,7 @@ namespace Cloudoman.AwsTools.Test
             
         }
 
-        [Test]
+        [TestMethod]
         public void ListVolumes()
         {
             var volumes = _diskPart.ListVolume();
@@ -50,17 +51,18 @@ namespace Cloudoman.AwsTools.Test
             
         }
 
-        [Test]
+        [TestMethod]
         public void OnlineDisk()
         {
             var firstDisk = _diskPart.ListDisk().FirstOrDefault();
             if (firstDisk == null) Assert.Fail();
             var response = _diskPart.OnlineDisk(firstDisk.Num);
             response.Output.Dump();
-            Assert.True(response.Status);
+            
+            Assert.IsTrue(response.Status);
         }
 
-        [Test]
+        [TestMethod]
         public void AssignDriveLetter()
         {
             var bootVolume = _diskPart.ListVolume().FirstOrDefault(x => x.Info == "Boot");
@@ -68,7 +70,7 @@ namespace Cloudoman.AwsTools.Test
             {
                 var response = _diskPart.AssignDriveLetter(bootVolume.Num, bootVolume.Letter);
                 response.Output.Dump();
-                Assert.False(response.Status);
+                Assert.IsFalse(response.Status);
             }
         }
     }
