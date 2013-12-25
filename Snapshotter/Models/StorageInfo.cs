@@ -2,7 +2,7 @@
 {
     public class StorageInfo
     {
-        public string Device { get; set; }
+        public string DeviceName { get; set; }
         public string Drive { get; set; }
         public string TimeStamp { get; set; }
         public string BackupName { get; set; }

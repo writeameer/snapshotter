@@ -22,10 +22,11 @@ namespace Cloudoman.AwsTools.Helpers
         {
             InstanceId = GetInstanceId();
             Ec2Region = GetEc2Region();
-            ServerName = GetInstanceTag("Name");
 
             var ec2Config = new AmazonEC2Config { ServiceURL = Ec2Region };
             Ec2Client = AWSClientFactory.CreateAmazonEC2Client(ec2Config);
+            ServerName = GetInstanceTag("Name");
+
         }
 
         static private readonly Func<string> GetInstanceId = () => Web.DownloadString("http://169.254.169.254/latest/meta-data/instance-id");

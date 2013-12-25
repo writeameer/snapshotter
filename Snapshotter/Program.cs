@@ -11,8 +11,6 @@ namespace Cloudoman.AwsTools
         static void Main(string[] args)
         {
 
-            Logger.Info("Job Started", "main");
-
             // Create Snapshots
             try
             {
@@ -34,6 +32,11 @@ namespace Cloudoman.AwsTools
                     case "restore":
                         snapShotter.StartRestore();
                         break;
+
+                    case "list":
+                        snapShotter.List();
+                        break;
+
                 }
 
             }
@@ -46,7 +49,6 @@ namespace Cloudoman.AwsTools
             }
 
 
-            Logger.Info("Job Ended", "main");
 		}
 
     }

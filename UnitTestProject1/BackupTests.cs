@@ -1,6 +1,7 @@
 ﻿using System;
 using Cloudoman.AwsTools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 
 namespace UnitTestProject1
 {
@@ -10,15 +11,27 @@ namespace UnitTestProject1
         [TestMethod]
         public void BackupVolumes()
         {
-            var snapShotter = new Snapshotter("ProdWeb");
-            snapShotter.StartBackup();
+            var bm = new BackupManager("ProdWeb");
+            bm.StartBackup();
         }
 
         [TestMethod]
         public void RestoreVolumes()
         {
-            var snapShotter = new Snapshotter("ProdWeb");
-            snapShotter.StartRestore();
+            var rm = new RestoreManager("ProdWeb");
+            var snapshotsInfo = rm.ListSnapshots();
+            var restoreSet = snapshotsInfo.Where(x => x.TimeStamp == "Wed, 25 Dec 2013 04:45:31 GMT");
+            restoreSet.ToList().ForEach(x =>
+            {
+                Console.WriteLine(x.BackupName);
+                Console.WriteLine(x.DeviceName);
+                Console.WriteLine(x.Drive);
+                Console.WriteLine(x.ServerName);
+                Console.WriteLine(x.SnapshotId);
+                Console.WriteLine(x.TimeStamp);
+            });
+
+
         }
     }
 }

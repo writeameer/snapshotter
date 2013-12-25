@@ -32,7 +32,7 @@ namespace Cloudoman.AwsTools
             _volumesInfo = volumes.Where(v => v.Attachment[0].Device != "/dev/sda1").Select(x => new VolumeInfo
             {
                 VolumeId = x.Attachment[0].VolumeId,
-                Device = x.Attachment[0].Device,
+                DeviceName = x.Attachment[0].Device,
                 Drive = x.Tag.Where(t => t.Key == "Drive").Select(d => d.Value).FirstOrDefault(),
                 ServerName = Utils.ServerName,
                 BackupName = _backupName,
@@ -48,7 +48,9 @@ namespace Cloudoman.AwsTools
             }
 
             // Snapshot volumes
+            Logger.Info("Job Started", "BackupManager");
             BackupVolumes();
+            Logger.Info("Job Ended", "BackupManager");
         }
 
         bool CheckBackupPreReqs()
@@ -97,7 +99,7 @@ namespace Cloudoman.AwsTools
             try
             {
                 // Create Snapshot Request
-                var fullDescription = String.Format("ServerName:{0}, DeviceName:{1}", Utils.ServerName, backupVolumeInfo.Device);
+                var fullDescription = String.Format("ServerName:{0}, DeviceName:{1}", Utils.ServerName, backupVolumeInfo.DeviceName);
                 var request = new CreateSnapshotRequest
                 {
                     VolumeId = backupVolumeInfo.VolumeId,
@@ -119,7 +121,7 @@ namespace Cloudoman.AwsTools
                         new Tag {Key = "ServerName", Value = backupVolumeInfo.ServerName},
                         new Tag {Key = "VolumeId", Value = backupVolumeInfo.VolumeId},
                         new Tag {Key = "InstanceId", Value = Utils.InstanceId},
-                        new Tag {Key = "DeviceName", Value = backupVolumeInfo.Device},
+                        new Tag {Key = "DeviceName", Value = backupVolumeInfo.DeviceName},
                         new Tag {Key = "Drive", Value = backupVolumeInfo.Drive},
                         new Tag {Key = "Name", Value = "Snapshotter Backup: " + Utils.ServerName},
                         new Tag {Key = "BackupName", Value = _backupName}

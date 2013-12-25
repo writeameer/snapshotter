@@ -13,10 +13,10 @@ namespace Cloudoman.AwsTools.Powerargs
         readonly string _operation;
 
         // List valid options
-        static readonly IEnumerable<string> Options = new List<string>{"backup", "restore"};
+        static readonly IEnumerable<string> Options = new List<string>{"backup", "restore", "list"};
 
         // Format into readable help message
-        private const string HelpMessage = "Invalid Operation Specified. Must be 'backup' or 'restore'";
+        private const string HelpMessage = "Invalid Operation Specified. Must be 'backup' or 'restore' or 'list'";
 
         // Constructor
         public Operation(string operation)

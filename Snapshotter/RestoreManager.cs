@@ -39,7 +39,7 @@ namespace Cloudoman.AwsTools
             {
                 SnapshotId = x.SnapshotId,
                 BackupName = _backupName,
-                Device = x.Tag.Get("Device"),
+                DeviceName = x.Tag.Get("DeviceName"),
                 ServerName = x.Tag.Get("ServerName"),
                 Drive = x.Tag.Get("Drive"),
                 TimeStamp = x.Tag.Get("TimeStamp"),
