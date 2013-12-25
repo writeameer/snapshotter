@@ -23,11 +23,8 @@ namespace Cloudoman.AwsTools
 
         public Snapshotter(string backupName)
 	    {
-            // Create EC2 Client using IAM creds if none found in app.config
-            var ec2Config = new AmazonEC2Config { ServiceURL = Utils.Ec2Region };
-            _ec2Client = AWSClientFactory.CreateAmazonEC2Client(ec2Config);
-
             // Initalize locals
+            _ec2Client = Utils.Ec2Client;
             _instanceId = new System.Net.WebClient().DownloadString("http://169.254.169.254/latest/meta-data/instance-id");
             _serverNameTag = Utils.GetServerTag(_ec2Client, "Name");
             _snapshotName = "Snapshotter Backup: " + _serverNameTag;
