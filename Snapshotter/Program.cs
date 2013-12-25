@@ -23,16 +23,16 @@ namespace Cloudoman.AwsTools
 
                 // Create Snapshotter object 
 
-                var snapShotter = new AwsTools.Snapshotter(backupName);
+                var snapShotter = new Snapshotter(backupName);
 
                 // Run backup or restore
                 switch (operation)
                 {
                     case "backup":
-                        snapShotter.DoBackup();
+                        snapShotter.StartBackup();
                         break;
                     case "restore":
-                        snapShotter.DoRestore();
+                        snapShotter.StartRestore();
                         break;
                 }
 

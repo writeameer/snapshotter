@@ -16,12 +16,13 @@ namespace Cloudoman.AwsTools.Helpers
         public static readonly AmazonEC2 Ec2Client;
         public static readonly string InstanceId;
         public static readonly string Ec2Region;
-
+        public static readonly string ServerName;
 
         static Utils()
         {
             InstanceId = GetInstanceId();
             Ec2Region = GetEc2Region();
+            ServerName = GetInstanceTag("Name");
 
             var ec2Config = new AmazonEC2Config { ServiceURL = Ec2Region };
             Ec2Client = AWSClientFactory.CreateAmazonEC2Client(ec2Config);
@@ -36,36 +37,24 @@ namespace Cloudoman.AwsTools.Helpers
             return "https://ec2." + availabilityZone.Remove(availabilityZone.Length - 1) + ".amazonaws.com";
         };
 
-
-  
-
-        public static string GetServerTag(AmazonEC2 ec2Client, string tagName)
+        public static readonly Func<string,string> GetInstanceTag = (x) =>
         {
-            var filters = new List<Filter>{
-                new Filter {
-                    Name = "resource-type",
-                    Value = new List<string> { "instance" }
-                },
-
-                new Filter {
-                    Name = "resource-id",
-                    Value = new List<string> { InstanceId }
-                },
-
-                new Filter{
+            var filters = new List<Filter>
+            {
+                new Filter {Name = "resource-type", Value = new List<string> {"instance"}},
+                new Filter {Name = "resource-id", Value = new List<string> {InstanceId}},
+                new Filter
+                {
                     Name = "key",
-                    Value = new List<string> { tagName }
+                    Value = new List<string> {x}
                 }
             };
-
-            var tags = ec2Client.DescribeTags(new DescribeTagsRequest { Filter = filters}).DescribeTagsResult.ResourceTag;
-
+            var tags = Ec2Client.DescribeTags(new DescribeTagsRequest {Filter = filters}).DescribeTagsResult.ResourceTag;
             return tags.Count == 0 ? null : tags[0].Value;
-        }
+        };
 
- 
-
-        public static List<Volume> GetMyVolumes(AmazonEC2 ec2Client)
+   
+        public static List<Volume> GetMyVolumes()
         {
             // Find volumes attached to me
             var filter = new Filter
@@ -79,7 +68,7 @@ namespace Cloudoman.AwsTools.Helpers
                 Filter = new List<Filter> { filter }
             };
 
-            var volumes = ec2Client.DescribeVolumes(request).DescribeVolumesResult.Volume;
+            var volumes = Ec2Client.DescribeVolumes(request).DescribeVolumesResult.Volume;
 
             if (volumes.Count != 0) return volumes;
             Logger.Info("No attached volumes were found", "GetMyVolumes");
