@@ -11,21 +11,6 @@ namespace Cloudoman.AwsTools
         static void Main(string[] args)
         {
 
-            Func<string> getInstanceId = () => "ameer";
-
-            var b = getInstanceId;
-
-            Console.WriteLine(b);
-
-            Environment.Exit(0);
-
-            var a = Utils.Ec2Client;
-
-            var something = a.DescribeKeyPairs(new DescribeKeyPairsRequest());
-            something.DescribeKeyPairsResult.KeyPair.ForEach(x => Console.WriteLine(x.KeyName));
-
-            Environment.Exit(0);
-
             Logger.Info("Job Started", "main");
 
             // Create Snapshots

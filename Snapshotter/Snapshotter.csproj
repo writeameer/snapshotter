@@ -77,6 +77,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackupManager.cs" />
     <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Models\SnapshotInfo.cs" />
     <Compile Include="Models\StorageInfo.cs" />
