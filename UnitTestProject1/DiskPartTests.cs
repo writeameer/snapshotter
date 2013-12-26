@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Cloudoman.DiskTools;
+using Cloudoman.DiskTools.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Cloudoman.AwsTools.Snapshotter.Tests
@@ -72,6 +73,22 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
                 response.Output.Dump();
                 Assert.IsFalse(response.Status);
             }
+        }
+
+        [TestMethod]
+        public void DetailVolume()
+        {
+            var volumeDetail = _diskPart.VolumeDetail(1);
+            Console.WriteLine(volumeDetail.Disk.Num);
+        }
+
+        [TestMethod]
+        public void GetAwsDeviceFromScsiId()
+        {
+            var a = _diskPart.GetAwsDeviceFromScsiId(1);
+            Console.WriteLine(a);
+            a = _diskPart.GetAwsDeviceFromScsiId(5);
+            Console.WriteLine(a);
         }
     }
 }

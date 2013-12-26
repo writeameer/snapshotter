@@ -45,6 +45,7 @@
     <Compile Include="DiskPart.cs" />
     <Compile Include="Models\DiskPartResponse.cs" />
     <Compile Include="Models\Volume.cs" />
+    <Compile Include="Models\VolumeDetail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

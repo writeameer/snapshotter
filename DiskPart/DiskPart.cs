@@ -103,15 +103,64 @@ namespace Cloudoman.DiskTools
 
             var output = RunCommand(command);
 
-            var message = "successfully onlined the selected disk".ToLower();
-            var message2 = "This disk is already online".ToLower();
-            status = (output.ToList().Any(x => x.ToLower().Contains(message) || x.ToLower().Contains(message2)) );
+            var message = "successfully onlined the selected disk";
+            var message2 = "This disk is already online";
+            status = (output.ToList().Any(x => x.ToLower().Contains(message.ToLower()) || x.ToLower().Contains(message2.ToLower())));
 
             return new DiskPartResponse
             {
                 Status = status,
                 Output = output
             };
+        }
+
+        public VolumeDetail VolumeDetail(int volumeNumber)
+        {
+            // Run Disk Part Comand to get Volume Detail
+            var command = @"
+                select volume $volumeNumber
+                detail volume
+                EXIT
+            ";
+            command = command.Replace("$volumeNumber", volumeNumber.ToString());
+
+            var output = RunCommand(command);
+
+            // Check if volume has attached disks
+            const string error = "There are no disks attached to this volume";
+            var noDisk = output.ToList().Any(x => x.ToLower().Contains(error.ToLower()));
+
+            // Extract volume details from diskpart output
+            var volumeDetail = new VolumeDetail
+            {
+                ReadOnly = output.GetBool("Read-only"),
+                Hidden = output.GetBool("Hidden"),
+                NoDefaultDriveLetter = output.GetBool("Hidden"),
+                ShadowCopy = output.GetBool("Hidden"),
+                Offline = output.GetBool("Hidden"),
+                BitLockerEncrypted = output.GetBool("Hidden"),
+                Installable = output.GetBool("Hidden"),
+            };
+
+            if (noDisk) return volumeDetail;
+
+            // Extract Disk details from diskpart output if it exists
+            var disk = output.Skip(9).Take(1).Select(x => new Disk
+            {
+                Num = int.Parse(x.Substring(2, 8).Split(' ')[1]),
+                Status = x.Substring(12, 13).Trim().NullIfEmpty(),
+                Size = x.Substring(27, 7).Replace(" ", "").Trim().NullIfEmpty(),
+                Free = x.Substring(36, 7).Replace(" ", "").Trim().NullIfEmpty(),
+                Dyn = x.Substring(45, 3).Trim().NullIfEmpty(),
+                Gpt = x.Substring(50, 2).Trim().NullIfEmpty()
+            }).FirstOrDefault();
+
+            // Get additional Volume detail when disks are attached
+            volumeDetail.Disk = disk;
+            volumeDetail.VolumeCapacity = output.GetString("Volume Capacity");
+            volumeDetail.VolumeFreeSpace = output.GetString("Volume Free Space");
+
+            return volumeDetail;
         }
 
         public DiskPartResponse AssignDriveLetter(int volumeNumber, string letter)
@@ -139,6 +188,10 @@ namespace Cloudoman.DiskTools
             };
         }
 
-        
+        public string GetAwsDeviceFromScsiId(int id)
+        {
+            if (id == 0) return "/dev/sda1";
+            return "/dev/xvd" + (char) (id + 97);
+        }
     }
 }
