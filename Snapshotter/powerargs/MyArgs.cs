@@ -6,7 +6,7 @@ namespace Cloudoman.AwsTools.Powerargs
     public class MyArgs
     {
         [ArgRequired]
-        [ArgDescription("Operation is either 'backup' or 'restore'")]
+        [ArgDescription("Operation is either 'backup' or 'restore' or 'list'")]
         public Operation Operation { get; set; }
 
         [ArgRequired]
