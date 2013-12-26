@@ -32,6 +32,12 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
             var snapshotsInfo = restoreManager.ListSnapshots();
 
 
+            if (snapshotsInfo.Count == 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine("No snapshots were found with the AWS resource tag:{0}\nPlease note that backup names are case-sensitive.\n", _backupName);
+                return;
+            }
             var heading = String.Format("|{0,-30}|{1,-10}|{2,-10}|{3,-10}|{4,-10}|{5,-15}|", 
                 "TimeStamp", "BackupName", "Device", "Drive", "ServerName", "SnapshotId");
             Console.WriteLine();
