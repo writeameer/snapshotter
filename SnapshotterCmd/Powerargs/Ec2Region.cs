@@ -3,7 +3,7 @@ using System.Linq;
 using Amazon;
 using PowerArgs;
 
-namespace Cloudoman.AwsTools.Powerargs
+namespace Cloudoman.AwsTools.SnapshotterCmd.Powerargs
 {
 
     // <summary> 

@@ -3,7 +3,7 @@ using System.Linq;
 using Cloudoman.DiskTools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Cloudoman.AwsTools.Test
+namespace Cloudoman.AwsTools.Snapshotter.Tests
 {
     [TestClass]
     public class DiskPartTests

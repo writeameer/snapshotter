@@ -1,6 +1,6 @@
 ﻿using PowerArgs;
 
-namespace Cloudoman.AwsTools.Powerargs
+namespace Cloudoman.AwsTools.SnapshotterCmd.Powerargs
 {
 
     public class MyArgs

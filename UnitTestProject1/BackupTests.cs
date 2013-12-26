@@ -1,9 +1,8 @@
 ﻿using System;
-using Cloudoman.AwsTools;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace UnitTestProject1
+namespace Cloudoman.AwsTools.Snapshotter.Tests
 {
     [TestClass]
     public class BackupTests

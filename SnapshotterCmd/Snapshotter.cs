@@ -1,12 +1,8 @@
 using System;
 using System.Linq;
-using Alphaleonis.Win32.Vss;
-using Amazon.EC2;
-using Amazon.EC2.Model;
-using Amazon.Util;
-using Cloudoman.AwsTools.Helpers;
+using Cloudoman.AwsTools.Snapshotter;
 
-namespace Cloudoman.AwsTools
+namespace Cloudoman.AwsTools.SnapshotterCmd
 {
 	public class Snapshotter
 	{

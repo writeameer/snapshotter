@@ -1,4 +1,4 @@
-﻿namespace Cloudoman.AwsTools.Models
+﻿namespace Cloudoman.AwsTools.Snapshotter.Models
 {
     public class SnapshotInfo : StorageInfo
     {

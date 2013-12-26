@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Cloudoman.AwsTools.Snapshotter.Helpers
+namespace Cloudoman.AwsTools.SnapshotterCmd
 {
     public static class Logger
     {

@@ -6,9 +6,9 @@ using Amazon;
 using Amazon.EC2;
 using Amazon.EC2.Model;
 
-namespace Cloudoman.AwsTools.Helpers
+namespace Cloudoman.AwsTools.Snapshotter.Helpers
 {
-    public class Utils
+    public class AwsHelper
     {
 
         static readonly WebClient Web = new WebClient();
@@ -18,7 +18,7 @@ namespace Cloudoman.AwsTools.Helpers
         public static readonly string Ec2Region;
         public static readonly string ServerName;
 
-        static Utils()
+        static AwsHelper()
         {
             InstanceId = GetInstanceId();
             Ec2Region = GetEc2Region();

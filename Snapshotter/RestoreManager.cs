@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Cloudoman.AwsTools.Helpers;
-using Cloudoman.AwsTools.Models;
+﻿using System.Collections.Generic;
 using Amazon.EC2.Model;
+using Cloudoman.AwsTools.Snapshotter.Helpers;
+using Cloudoman.AwsTools.Snapshotter.Models;
 
-namespace Cloudoman.AwsTools
+namespace Cloudoman.AwsTools.Snapshotter
 {
     public class RestoreManager
     {
-        private string _backupName;
+        private readonly string _backupName;
         public RestoreManager(string backupName)
         {
             _backupName = backupName;
@@ -32,7 +29,7 @@ namespace Cloudoman.AwsTools
             };
 
             var request = new DescribeSnapshotsRequest { Filter = filters };
-            var snapshots = Utils.Ec2Client.DescribeSnapshots(request).DescribeSnapshotsResult.Snapshot;
+            var snapshots = AwsHelper.Ec2Client.DescribeSnapshots(request).DescribeSnapshotsResult.Snapshot;
 
             var snapshotsInfo = new List<SnapshotInfo>();
             snapshots.ForEach(x => snapshotsInfo.Add(new SnapshotInfo

@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Alphaleonis.Win32.Vss;
-using Amazon.EC2;
 using Amazon.EC2.Model;
 using Amazon.Util;
-using Cloudoman.AwsTools.Helpers;
-using Cloudoman.AwsTools.Models;
+using Cloudoman.AwsTools.Snapshotter.Helpers;
+using Cloudoman.AwsTools.Snapshotter.Models;
 
-namespace Cloudoman.AwsTools
+namespace Cloudoman.AwsTools.Snapshotter
 {
     public class BackupManager
     {
@@ -27,14 +26,15 @@ namespace Cloudoman.AwsTools
         public void StartBackup()
         {
 
-            // Get Info on volumes to be backed up
-            var volumes = Utils.GetMyVolumes();
+            // Get Volumes attached to local instance 
+            // other than the boot volume
+            var volumes = AwsHelper.GetMyVolumes();
             _volumesInfo = volumes.Where(v => v.Attachment[0].Device != "/dev/sda1").Select(x => new VolumeInfo
             {
                 VolumeId = x.Attachment[0].VolumeId,
                 DeviceName = x.Attachment[0].Device,
                 Drive = x.Tag.Where(t => t.Key == "Drive").Select(d => d.Value).FirstOrDefault(),
-                ServerName = Utils.ServerName,
+                ServerName = AwsHelper.ServerName,
                 BackupName = _backupName,
                 TimeStamp = AWSSDKUtils.FormattedCurrentTimestampRFC822
             }).ToList();
@@ -57,7 +57,7 @@ namespace Cloudoman.AwsTools
         {
 
             // Ensure the instance has a "Name" tag for identifying server
-            if (String.IsNullOrEmpty(Utils.ServerName))
+            if (String.IsNullOrEmpty(AwsHelper.ServerName))
             {
                 Logger.Error("This Instance must be tagged with a server name before it's volumes can be snapshotted.\nExitting.", "CheckBackupPreReqs");
                 return false;
@@ -99,7 +99,7 @@ namespace Cloudoman.AwsTools
             try
             {
                 // Create Snapshot Request
-                var fullDescription = String.Format("ServerName:{0}, DeviceName:{1}", Utils.ServerName, backupVolumeInfo.DeviceName);
+                var fullDescription = String.Format("ServerName:{0}, DeviceName:{1}", AwsHelper.ServerName, backupVolumeInfo.DeviceName);
                 var request = new CreateSnapshotRequest
                 {
                     VolumeId = backupVolumeInfo.VolumeId,
@@ -107,7 +107,7 @@ namespace Cloudoman.AwsTools
                 };
 
                 // Create Snapshot
-                var response = Utils.Ec2Client.CreateSnapshot(request);
+                var response = AwsHelper.Ec2Client.CreateSnapshot(request);
                 var snapshotId = response.CreateSnapshotResult.Snapshot.SnapshotId;
 
                 Logger.Info("Created Snapshot:" + snapshotId + " for Volume Id:" + backupVolumeInfo.VolumeId, "SnapShotVolume");
@@ -120,17 +120,17 @@ namespace Cloudoman.AwsTools
                         new Tag {Key = "TimeStamp", Value = backupVolumeInfo.TimeStamp},
                         new Tag {Key = "ServerName", Value = backupVolumeInfo.ServerName},
                         new Tag {Key = "VolumeId", Value = backupVolumeInfo.VolumeId},
-                        new Tag {Key = "InstanceId", Value = Utils.InstanceId},
+                        new Tag {Key = "InstanceId", Value = AwsHelper.InstanceId},
                         new Tag {Key = "DeviceName", Value = backupVolumeInfo.DeviceName},
                         new Tag {Key = "Drive", Value = backupVolumeInfo.Drive},
-                        new Tag {Key = "Name", Value = "Snapshotter Backup: " + Utils.ServerName},
+                        new Tag {Key = "Name", Value = "Snapshotter Backup: " + AwsHelper.ServerName},
                         new Tag {Key = "BackupName", Value = _backupName}
                     }
                 };
 
                 // Tag Snapshot
-                Utils.Ec2Client.CreateTags(tagRequest);
-                Logger.Info("Server " + Utils.ServerName + ":" + Utils.InstanceId + " Volume Id:" + backupVolumeInfo.VolumeId + " was snapshotted and tagged.", "SnapShotVolume");
+                AwsHelper.Ec2Client.CreateTags(tagRequest);
+                Logger.Info("Server " + AwsHelper.ServerName + ":" + AwsHelper.InstanceId + " Volume Id:" + backupVolumeInfo.VolumeId + " was snapshotted and tagged.", "SnapShotVolume");
             }
             catch (Exception e)
             {
