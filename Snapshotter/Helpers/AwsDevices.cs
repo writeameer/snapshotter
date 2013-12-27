@@ -13,15 +13,15 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
 
         public static string GetScsiId()
         {
-            var query = new SelectQuery("Select DeviceId,SCSITargetId From win32_DiskDrive");
+            var query = new SelectQuery("Select DeviceId,SCSITargetId From win32_DiskDrive where SCSITargetId < 16");
             var searcher = new ManagementObjectSearcher(query);
             var collection = searcher.Get();
 
             foreach (var item in collection)
             {
-                var deviceId = item["DeviceId"].ToString();
-                var scsiTargetId = item["SCSITargetId"].ToString();
-                Console.WriteLine("{0} {1}",deviceId, scsiTargetId);
+                var diskId = item["DeviceId"].ToString().Replace(@"\\.\PHYSICALDRIVE","");
+                var awsDeviceId = GetDeviceFromScsiId(int.Parse(item["SCSITargetId"].ToString()));
+                Console.WriteLine("{0} {1}", diskId, awsDeviceId);
             }
             return null;
         }

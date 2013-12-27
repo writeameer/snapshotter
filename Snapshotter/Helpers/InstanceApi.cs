@@ -8,7 +8,7 @@ using Amazon.EC2.Model;
 
 namespace Cloudoman.AwsTools.Snapshotter.Helpers
 {
-    public class InstanceApi
+    public class InstanceInfo
     {
 
         static readonly WebClient Web = new WebClient();
@@ -18,7 +18,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
         public static readonly string Ec2Region;
         public static readonly string ServerName;
 
-        static InstanceApi()
+        static InstanceInfo()
         {
             InstanceId = GetInstanceId();
             Ec2Region = GetEc2Region();
@@ -76,28 +76,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
             return null;
         }
 
-        public static List<Snapshot> GetMySnapshots(AmazonEC2 ec2Client, string backupName)
-        {
-            var filters = new List<Filter> {
-                new Filter
-                {
-                    Name = "tag-key",
-                    Value = new List<string> { "BackupName" }
-                },
-                new Filter
-                {
-                    Name = "tag-value",
-                    Value = new List<string> { backupName }
-                }
-            };
-
-            var request = new DescribeSnapshotsRequest { Filter = filters };
-            var snapshots = ec2Client.DescribeSnapshots(request).DescribeSnapshotsResult.Snapshot;
-
-            if (snapshots.Count != 0) return snapshots;
-            Logger.Info("No snapshots found", "GetMySnapshots");
-            return null;
-        }
+        
 
         public static IEnumerable<string> GetFreeDevices(AmazonEC2 ec2Client)
         {

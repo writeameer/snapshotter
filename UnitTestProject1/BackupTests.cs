@@ -38,5 +38,11 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         {
             AwsDevices.GetScsiId();
         }
+
+        [TestMethod]
+        public void GetServerName()
+        {
+            Console.WriteLine(InstanceInfo.ServerName);
+        }
     }
 }

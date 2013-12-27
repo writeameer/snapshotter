@@ -28,13 +28,13 @@ namespace Cloudoman.AwsTools.Snapshotter
 
             // Get Volumes attached to local instance 
             // other than the boot volume
-            var volumes = InstanceApi.GetMyVolumes();
+            var volumes = InstanceInfo.GetMyVolumes();
             _volumesInfo = volumes.Where(v => v.Attachment[0].Device != "/dev/sda1").Select(x => new VolumeInfo
             {
                 VolumeId = x.Attachment[0].VolumeId,
                 DeviceName = x.Attachment[0].Device,
                 Drive = x.Tag.Where(t => t.Key == "Drive").Select(d => d.Value).FirstOrDefault(),
-                ServerName = InstanceApi.ServerName,
+                ServerName = InstanceInfo.ServerName,
                 BackupName = _backupName,
                 TimeStamp = AWSSDKUtils.FormattedCurrentTimestampRFC822
             }).ToList();
@@ -57,7 +57,7 @@ namespace Cloudoman.AwsTools.Snapshotter
         {
 
             // Ensure the instance has a "Name" tag for identifying server
-            if (String.IsNullOrEmpty(InstanceApi.ServerName))
+            if (String.IsNullOrEmpty(InstanceInfo.ServerName))
             {
                 Logger.Error("This Instance must be tagged with a server name before it's volumes can be snapshotted.\nExitting.", "CheckBackupPreReqs");
                 return false;
@@ -99,7 +99,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             try
             {
                 // Create Snapshot Request
-                var fullDescription = String.Format("ServerName:{0}, DeviceName:{1}", InstanceApi.ServerName, backupVolumeInfo.DeviceName);
+                var fullDescription = String.Format("ServerName:{0}, DeviceName:{1}", InstanceInfo.ServerName, backupVolumeInfo.DeviceName);
                 var request = new CreateSnapshotRequest
                 {
                     VolumeId = backupVolumeInfo.VolumeId,
@@ -107,7 +107,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                 };
 
                 // Create Snapshot
-                var response = InstanceApi.Ec2Client.CreateSnapshot(request);
+                var response = InstanceInfo.Ec2Client.CreateSnapshot(request);
                 var snapshotId = response.CreateSnapshotResult.Snapshot.SnapshotId;
 
                 Logger.Info("Created Snapshot:" + snapshotId + " for Volume Id:" + backupVolumeInfo.VolumeId, "SnapShotVolume");
@@ -120,17 +120,17 @@ namespace Cloudoman.AwsTools.Snapshotter
                         new Tag {Key = "TimeStamp", Value = backupVolumeInfo.TimeStamp},
                         new Tag {Key = "ServerName", Value = backupVolumeInfo.ServerName},
                         new Tag {Key = "VolumeId", Value = backupVolumeInfo.VolumeId},
-                        new Tag {Key = "InstanceId", Value = InstanceApi.InstanceId},
+                        new Tag {Key = "InstanceId", Value = InstanceInfo.InstanceId},
                         new Tag {Key = "DeviceName", Value = backupVolumeInfo.DeviceName},
                         new Tag {Key = "Drive", Value = backupVolumeInfo.Drive},
-                        new Tag {Key = "Name", Value = "Snapshotter Backup: " + InstanceApi.ServerName},
+                        new Tag {Key = "Name", Value = "Snapshotter Backup: " + InstanceInfo.ServerName},
                         new Tag {Key = "BackupName", Value = _backupName}
                     }
                 };
 
                 // Tag Snapshot
-                InstanceApi.Ec2Client.CreateTags(tagRequest);
-                Logger.Info("Server " + InstanceApi.ServerName + ":" + InstanceApi.InstanceId + " Volume Id:" + backupVolumeInfo.VolumeId + " was snapshotted and tagged.", "SnapShotVolume");
+                InstanceInfo.Ec2Client.CreateTags(tagRequest);
+                Logger.Info("Server " + InstanceInfo.ServerName + ":" + InstanceInfo.InstanceId + " Volume Id:" + backupVolumeInfo.VolumeId + " was snapshotted and tagged.", "SnapShotVolume");
             }
             catch (Exception e)
             {
