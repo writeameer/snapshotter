@@ -22,11 +22,8 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
                 var backupName = parsed.BackupName;
                 var timeStamp = parsed.TimeStamp;
 
-                // Create Snapshotter object 
 
-                var snapShotter = new Launcher(backupName);
-
-                // Run backup or restore
+                // Run requested operation
                 switch (operation)
                 {
                     case "backup":

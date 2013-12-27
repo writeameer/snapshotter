@@ -13,11 +13,12 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
     public class RestoreTests
     {
         [TestMethod]
-        public void StartRestore()
+        public void ListSnapshots()
         {
             var request = new RestoreRequest();
+            request.BackupName = "web";
             var restoreManager = new RestoreManager(request);
-            restoreManager.StartRestore();
+            restoreManager.List();
 
         }
     }

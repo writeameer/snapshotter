@@ -66,7 +66,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             snapshots.ForEach(x => snapshotsInfo.Add(new SnapshotInfo
             {
                 SnapshotId = x.SnapshotId,
-                BackupName = _backupName,
+                BackupName = x.Tag.Get("BackupName"),
                 DeviceName = x.Tag.Get("DeviceName"),
                 ServerName = x.Tag.Get("ServerName"),
                 Drive = x.Tag.Get("Drive"),
@@ -98,20 +98,20 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void StartRestore()
         {
-            Logger.Info("Starting Restore" ,"StartRestore");
-            Logger.Info("Backup Name:" + _backupName, "StartRestore");
+            Logger.Info("Starting Restore", "RestoreManager.StartRestore");
+            Logger.Info("Backup Name:" + _backupName, "RestoreManager.StartRestore");
 
             // Find Snapshots to Restore
             var snapshots = GetSnapshots();
-            snapshots.ToList().ForEach(x => Logger.Info(x.ToString(), "StartRestore"));
+            snapshots.ToList().ForEach(x => Logger.Info(x.ToString(), "RestoreManager.StartRestore"));
         }
 
         public void List()
         {
-            Logger.Info("Starting Restore", "RestoreMeneger - List");
-            Logger.Info("Backup Name:" + _backupName, "StartRestore");
+            Logger.Info("Listing Snaphshots", "RestoreManager.List");
+            Logger.Info("Backup Name:" + _backupName, "RestoreManager.List");
             Console.WriteLine(new SnapshotInfo().FormattedHeader);
-            _snapshotsInfo.ToList().ForEach(x => Logger.Info(x.ToString(), "StartRestore"));
+            _snapshotsInfo.ToList().ForEach(Console.WriteLine);
         }
 
     }

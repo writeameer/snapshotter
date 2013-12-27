@@ -33,7 +33,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
                                   type,
                                   module,
                                   message);
-            Console.WriteLine(output);
+            if (type != "info") Console.WriteLine(output);
             Trace.WriteLine(output);
         }
 
