@@ -10,29 +10,45 @@ namespace Cloudoman.AwsTools.Snapshotter
     public class RestoreManager
     {
         private readonly string _backupName;
-        private List<SnapshotInfo> _snapshotsInfo;
+        private readonly string _timeStamp;
+        private IEnumerable<SnapshotInfo> _snapshotsInfo;
 
-        public RestoreManager() : this(backupName:InstanceInfo.ServerName) { }
-
-        public RestoreManager(string backupName) : this (backupName, "") {}
-
-
-        public RestoreManager (string backupName, string timeStamp)
+        public RestoreManager(RestoreRequest request)
         {
-            if (backupName == null)
+            
+            // Get Backup Name from Request or from Instance NAME tag
+            _backupName = (request.BackupName == null) ? InstanceInfo.ServerName : request.BackupName;
+            if (_backupName == null)
             {
                 var message = "The backup name defauts to this EC2 Instances's 'Name' tag.";
                 message += "Please explicitly provide a backup name OR tag this EC2 instance with a name";
                 message += "from the AWS Console or using the AWS API.";
 
                 Logger.Error(message, "RestoreManager");
-                throw new System.ApplicationException("message");
+                throw new System.ApplicationException(message);
             }
 
-            _backupName = backupName;
-            _snapshotsInfo = ListSnapshots();
+            // Get Snapshots with given backup name
+            _snapshotsInfo = GetAllSnapshots();
+            if (_snapshotsInfo.Count == 0 )
+            {
+                var message = "No snapshots were found for BackupName:" + _backupName; 
+                Logger.Error(message, "RestoreManager");
+                throw new System.ApplicationException(message);
+            }
+
+            // Get Snapshot timestamp from Request or default to latest
+            _timeStamp = (request.TimeStamp == null) ? (GetLatestSnapshotTimeStamp()) : request.TimeStamp;
+            if (_timeStamp == null)
+            {
+                var message = "No timestamp was explicitly provided. Unable to determine the timestamp of the latest snapshot. Exitting.";
+                Logger.Error(message, "RestoreMenager");
+            }
+
         }
-        public List<SnapshotInfo> ListSnapshots()
+
+
+        public IEnumerable<SnapshotInfo> GetAllSnapshots()
         {
             var filters = new List<Filter> {
                 new Filter {Name = "tag-key", Value = new List<string> { "BackupName" }},
@@ -44,6 +60,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             var snapshots = InstanceInfo.Ec2Client.DescribeSnapshots(request).DescribeSnapshotsResult.Snapshot;
 
             var snapshotsInfo = new List<SnapshotInfo>();
+
             
 
             snapshots.ForEach(x => snapshotsInfo.Add(new SnapshotInfo
@@ -56,26 +73,36 @@ namespace Cloudoman.AwsTools.Snapshotter
                 TimeStamp = x.Tag.Get("TimeStamp"),
             }));
 
-            snapshotsInfo = snapshotsInfo.OrderByDescending(x => Convert.ToDateTime(x.TimeStamp)).ToList();
+            snapshotsInfo = snapshotsInfo.OrderByDescending(x => Convert.ToDateTime(x.TimeStamp));
             return snapshotsInfo;
         }
 
-        public List<SnapshotInfo> GetSnapshots()
+        public string GetLatestSnapshotTimeStamp()
         {
             var newest = _snapshotsInfo.Max(x => Convert.ToDateTime(x.TimeStamp));
-            return _snapshotsInfo.Where(x => Convert.ToDateTime(x.TimeStamp) == newest).ToList();
+            return _snapshotsInfo
+                        .Where(x => Convert.ToDateTime(x.TimeStamp) == newest)
+                        .Select(x => x.TimeStamp).FirstOrDefault();
         }
 
-        public List<SnapshotInfo> GetSnapshots(string timeStamp)
+        public IEnumerable<SnapshotInfo> GetSnapshots()
         {
-            return _snapshotsInfo.Where(x => Convert.ToDateTime(x.TimeStamp) == Convert.ToDateTime(timeStamp)).ToList();
+            var newest = _snapshotsInfo.Max(x => Convert.ToDateTime(x.TimeStamp));
+            return _snapshotsInfo.Where(x => Convert.ToDateTime(x.TimeStamp) == newest);
+        }
+
+        public IEnumerable<SnapshotInfo> GetSnapshots(string timeStamp)
+        {
+            return _snapshotsInfo.Where(x => Convert.ToDateTime(x.TimeStamp) == Convert.ToDateTime(timeStamp));
         }
 
         public void StartRestore()
         {
             Logger.Info("Starting Restore" ,"StartRestore");
             Logger.Info("Backup Name:" + _backupName, "StartRestore");
-            var snapshotInfo = GetSnapshots("Thu, 26 Dec 2013 01:18:28 GMT");
+
+            // Find Snapshots to Restore
+            var snapshots = _snapshotsInfo.Where(x => Convert.ToDateTime(x.TimeStamp) == Convert.ToDateTime(_timeStamp));
             snapshotInfo.ForEach( x => Logger.Info(x.ToString(),"StartRestore"));
         }
 

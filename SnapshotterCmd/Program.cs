@@ -20,7 +20,7 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
 
                 // Create Snapshotter object 
 
-                var snapShotter = new Snapshotter(backupName);
+                var snapShotter = new Launcher(backupName);
 
                 // Run backup or restore
                 switch (operation)

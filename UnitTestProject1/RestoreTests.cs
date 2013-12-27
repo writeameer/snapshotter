@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Cloudoman.AwsTools.Snapshotter;
+using Cloudoman.AwsTools.Snapshotter.Models;
 
 namespace Cloudoman.AwsTools.Snapshotter.Tests
 {
@@ -13,10 +14,9 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         [TestMethod]
         public void StartRestore()
         {
-            var restoreManager = new RestoreManager();
+            var request = new RestoreRequest();
+            var restoreManager = new RestoreManager(request);
             restoreManager.StartRestore();
-
-
         }
     }
 }

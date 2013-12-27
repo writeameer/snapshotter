@@ -1,22 +1,23 @@
 using System;
 using System.Linq;
 using Cloudoman.AwsTools.Snapshotter;
+using Cloudoman.AwsTools.Snapshotter.Models;
 
 namespace Cloudoman.AwsTools.SnapshotterCmd
 {
-	public class Snapshotter
+	public class Launcher
 	{
 	    readonly string _backupName;
 
-	    public Snapshotter(string backupName)
+	    public Launcher(string backupName)
 	    {
             _backupName = backupName;
 	    }
 
 	    public void StartRestore()
 	    {
-	        var restoreManager = new RestoreManager(_backupName);
-	        restoreManager.ListSnapshots();
+	        var restoreManager = new RestoreManager(new RestoreRequest());
+	        restoreManager.GetAllSnapshots();
 	    }
 
         public void StartBackup()
@@ -27,9 +28,9 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
 
         public void List()
         {
-            var restoreManager = new RestoreManager(_backupName);
-            restoreManager.ListSnapshots();
-            var snapshotsInfo = restoreManager.ListSnapshots();
+            var restoreManager = new RestoreManager(new RestoreRequest());
+            restoreManager.GetAllSnapshots();
+            var snapshotsInfo = restoreManager.GetAllSnapshots();
 
 
             if (snapshotsInfo.Count == 0)

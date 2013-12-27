@@ -2,6 +2,7 @@
 using System.Linq;
 using Cloudoman.AwsTools.Snapshotter.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Cloudoman.AwsTools.Snapshotter.Models;
 
 namespace Cloudoman.AwsTools.Snapshotter.Tests
 {
@@ -18,8 +19,8 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         [TestMethod]
         public void RestoreVolumes()
         {
-            var rm = new RestoreManager("ProdWeb");
-            var snapshotsInfo = rm.ListSnapshots();
+            var rm = new RestoreManager(new RestoreRequest());
+            var snapshotsInfo = rm.GetAllSnapshots();
             var restoreSet = snapshotsInfo.Where(x => x.TimeStamp == "Wed, 25 Dec 2013 04:45:31 GMT");
             restoreSet.ToList().ForEach(x =>
             {
