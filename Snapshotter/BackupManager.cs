@@ -19,8 +19,18 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public BackupManager(string backupName)
         {
-            // Initalize locals
-            _backupName = backupName;
+            // Get Backup Name from Request or from Instance NAME tag
+            _backupName = backupName ?? InstanceInfo.ServerName;
+            if (_backupName == null)
+            {
+                var message = "The backup name defauts to this EC2 Instances's 'Name' tag.";
+                message += "Please explicitly provide a backup name OR tag this EC2 instance with a name";
+                message += "from the AWS Console or using the AWS API.";
+
+                Logger.Error(message, "RestoreManager");
+                throw new System.ApplicationException(message);
+            }
+
         }
 
         public void StartBackup()
