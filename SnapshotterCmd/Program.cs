@@ -1,4 +1,6 @@
 ﻿using System;
+using Cloudoman.AwsTools.Snapshotter;
+using Cloudoman.AwsTools.Snapshotter.Models;
 using Cloudoman.AwsTools.SnapshotterCmd.Powerargs;
 using PowerArgs;
 
@@ -18,6 +20,7 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
                 var parsed = Args.Parse<MyArgs>(args);
                 var operation = parsed.Operation.ToString().ToLower();
                 var backupName = parsed.BackupName;
+                var timeStamp = parsed.TimeStamp;
 
                 // Create Snapshotter object 
 
@@ -27,14 +30,18 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
                 switch (operation)
                 {
                     case "backup":
-                        snapShotter.StartBackup();
+                        var backupManager = new BackupManager(backupName);
+                        backupManager.StartBackup();
                         break;
                     case "restore":
-                        snapShotter.StartRestore();
+                        var request = new RestoreRequest {BackupName = backupName, TimeStamp = timeStamp};
+                        var restoreManager = new RestoreManager(request);
+                        restoreManager.StartRestore();
                         break;
 
                     case "list":
-                        snapShotter.List();
+                        var restoreRequest = new RestoreRequest { BackupName = backupName, TimeStamp = timeStamp };
+                        new RestoreManager(restoreRequest).List();
                         break;
 
                 }

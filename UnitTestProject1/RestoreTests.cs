@@ -18,6 +18,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
             var request = new RestoreRequest();
             var restoreManager = new RestoreManager(request);
             restoreManager.StartRestore();
+
         }
     }
 }

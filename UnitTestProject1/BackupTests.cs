@@ -19,18 +19,18 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         [TestMethod]
         public void RestoreVolumes()
         {
-            var rm = new RestoreManager(new RestoreRequest());
-            var snapshotsInfo = rm.GetAllSnapshots();
-            var restoreSet = snapshotsInfo.Where(x => x.TimeStamp == "Wed, 25 Dec 2013 04:45:31 GMT");
-            restoreSet.ToList().ForEach(x =>
-            {
-                Console.WriteLine(x.BackupName);
-                Console.WriteLine(x.DeviceName);
-                Console.WriteLine(x.Drive);
-                Console.WriteLine(x.ServerName);
-                Console.WriteLine(x.SnapshotId);
-                Console.WriteLine(x.TimeStamp);
-            });
+            //var rm = new RestoreManager(new RestoreRequest());
+            //var snapshotsInfo = rm.GetAllSnapshots();
+            //var restoreSet = snapshotsInfo.Where(x => x.TimeStamp == "Wed, 25 Dec 2013 04:45:31 GMT");
+            //restoreSet.ToList().ForEach(x =>
+            //{
+            //    Console.WriteLine(x.BackupName);
+            //    Console.WriteLine(x.DeviceName);
+            //    Console.WriteLine(x.Drive);
+            //    Console.WriteLine(x.ServerName);
+            //    Console.WriteLine(x.SnapshotId);
+            //    Console.WriteLine(x.TimeStamp);
+            //});
 
         }
 

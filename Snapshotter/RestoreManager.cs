@@ -48,7 +48,7 @@ namespace Cloudoman.AwsTools.Snapshotter
         }
 
 
-        public IEnumerable<SnapshotInfo> GetAllSnapshots()
+        IEnumerable<SnapshotInfo> GetAllSnapshots()
         {
             var filters = new List<Filter> {
                 new Filter {Name = "tag-key", Value = new List<string> { "BackupName" }},
@@ -102,8 +102,16 @@ namespace Cloudoman.AwsTools.Snapshotter
             Logger.Info("Backup Name:" + _backupName, "StartRestore");
 
             // Find Snapshots to Restore
-            var snapshots = _snapshotsInfo.Where(x => Convert.ToDateTime(x.TimeStamp) == Convert.ToDateTime(_timeStamp));
+            var snapshots = GetSnapshots();
             snapshots.ToList().ForEach(x => Logger.Info(x.ToString(), "StartRestore"));
+        }
+
+        public void List()
+        {
+            Logger.Info("Starting Restore", "RestoreMeneger - List");
+            Logger.Info("Backup Name:" + _backupName, "StartRestore");
+            Console.WriteLine(new SnapshotInfo().FormattedHeader);
+            _snapshotsInfo.ToList().ForEach(x => Logger.Info(x.ToString(), "StartRestore"));
         }
 
     }
