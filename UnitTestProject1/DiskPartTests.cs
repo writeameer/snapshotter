@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
+using Cloudoman.AwsTools.Snapshotter.Helpers;
 using Cloudoman.DiskTools;
-using Cloudoman.DiskTools.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Cloudoman.AwsTools.Snapshotter.Tests
@@ -85,9 +85,9 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         [TestMethod]
         public void GetAwsDeviceFromScsiId()
         {
-            var a = _diskPart.GetAwsDeviceFromScsiId(1);
+            var a = AwsDevices.GetDeviceFromScsiId(1);
             Console.WriteLine(a);
-            a = _diskPart.GetAwsDeviceFromScsiId(5);
+            a = AwsDevices.GetDeviceFromScsiId(5);
             Console.WriteLine(a);
         }
     }

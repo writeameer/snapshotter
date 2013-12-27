@@ -29,7 +29,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             };
 
             var request = new DescribeSnapshotsRequest { Filter = filters };
-            var snapshots = AwsHelper.Ec2Client.DescribeSnapshots(request).DescribeSnapshotsResult.Snapshot;
+            var snapshots = InstanceApi.Ec2Client.DescribeSnapshots(request).DescribeSnapshotsResult.Snapshot;
 
             var snapshotsInfo = new List<SnapshotInfo>();
             snapshots.ForEach(x => snapshotsInfo.Add(new SnapshotInfo

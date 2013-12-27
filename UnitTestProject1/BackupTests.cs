@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Cloudoman.AwsTools.Snapshotter.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Cloudoman.AwsTools.Snapshotter.Tests
@@ -30,7 +31,12 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
                 Console.WriteLine(x.TimeStamp);
             });
 
+        }
 
+        [TestMethod]
+        public void GetScsiTargets()
+        {
+            AwsDevices.GetScsiId();
         }
     }
 }

@@ -188,10 +188,6 @@ namespace Cloudoman.DiskTools
             };
         }
 
-        public string GetAwsDeviceFromScsiId(int id)
-        {
-            if (id == 0) return "/dev/sda1";
-            return "/dev/xvd" + (char) (id + 97);
-        }
+
     }
 }

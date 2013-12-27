@@ -8,7 +8,7 @@ using Amazon.EC2.Model;
 
 namespace Cloudoman.AwsTools.Snapshotter.Helpers
 {
-    public class AwsHelper
+    public class InstanceApi
     {
 
         static readonly WebClient Web = new WebClient();
@@ -18,7 +18,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
         public static readonly string Ec2Region;
         public static readonly string ServerName;
 
-        static AwsHelper()
+        static InstanceApi()
         {
             InstanceId = GetInstanceId();
             Ec2Region = GetEc2Region();
@@ -101,11 +101,12 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
 
         public static IEnumerable<string> GetFreeDevices(AmazonEC2 ec2Client)
         {
-            // All devices are xvdf-xvdp
+            // Generate list of all devices (xvdf-xvdp)
             var allDevices = Enumerable.Range('f', 'p' - 'f' + 1).Select(x => "xvd" + (char)x);
 
+            // Find Devices attached to local instance
+            // Return Devices not attached to local instance
             var request = new DescribeInstancesRequest {InstanceId = new List<string>{InstanceId}};
-
             return allDevices.Except(
                     ec2Client.DescribeInstances(request)
                         .DescribeInstancesResult
@@ -115,6 +116,5 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
                         .Select(x => x.DeviceName)
             );
         }
-
     }
 }

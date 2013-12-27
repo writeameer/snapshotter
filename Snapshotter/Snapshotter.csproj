@@ -88,6 +88,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -97,13 +98,14 @@
   <ItemGroup>
     <Compile Include="BackupManager.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Helpers\AwsDevices.cs" />
     <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Models\SnapshotInfo.cs" />
     <Compile Include="Models\StorageInfo.cs" />
     <Compile Include="Models\VolumeInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RestoreManager.cs" />
-    <Compile Include="Helpers\AwsHelper.cs" />
+    <Compile Include="Helpers\InstanceApi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
