@@ -9,6 +9,7 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
     {
         static void Main(string[] args)
         {
+            
 
             // Create Snapshots
             try

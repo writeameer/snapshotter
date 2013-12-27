@@ -29,7 +29,7 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
         public void List()
         {
             var restoreManager = new RestoreManager(new RestoreRequest());
-            var snapshotsInfo = restoreManager.GetAllSnapshots() as SnapshotInfo[];
+            var snapshotsInfo = restoreManager.GetAllSnapshots().ToArray();
 
 
             if (snapshotsInfo.Length == 0)
@@ -41,8 +41,8 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
 
             var heading = String.Format("|{0,-30}|{1,-10}|{2,-10}|{3,-10}|{4,-10}|{5,-15}|", 
                 "TimeStamp", "BackupName", "Device", "Drive", "ServerName", "SnapshotId");
-            Console.WriteLine();
-            Console.WriteLine(" " + new String('-',90) + " ");
+
+            Console.WriteLine( " " + new String('-',90) + " ");
             Console.WriteLine(heading);
             Console.WriteLine("|" + new String('-', 90) + "|");
 
