@@ -29,16 +29,16 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
         public void List()
         {
             var restoreManager = new RestoreManager(new RestoreRequest());
-            restoreManager.GetAllSnapshots();
-            var snapshotsInfo = restoreManager.GetAllSnapshots();
+            var snapshotsInfo = restoreManager.GetAllSnapshots() as SnapshotInfo[];
 
 
-            if (snapshotsInfo.Count == 0)
+            if (snapshotsInfo.Length == 0)
             {
                 Console.WriteLine();
                 Console.WriteLine("No snapshots were found with the AWS resource tag:{0}\nPlease note that backup names are case-sensitive.\n", _backupName);
                 return;
             }
+
             var heading = String.Format("|{0,-30}|{1,-10}|{2,-10}|{3,-10}|{4,-10}|{5,-15}|", 
                 "TimeStamp", "BackupName", "Device", "Drive", "ServerName", "SnapshotId");
             Console.WriteLine();

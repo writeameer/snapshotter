@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Cloudoman.AwsTools.Snapshotter;
 using Cloudoman.AwsTools.Snapshotter.Models;
 
+
 namespace Cloudoman.AwsTools.Snapshotter.Tests
 {
     [TestClass]

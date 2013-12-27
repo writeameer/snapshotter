@@ -17,7 +17,7 @@ namespace Cloudoman.AwsTools.Snapshotter
         {
             
             // Get Backup Name from Request or from Instance NAME tag
-            _backupName = (request.BackupName == null) ? InstanceInfo.ServerName : request.BackupName;
+            _backupName = request.BackupName ?? InstanceInfo.ServerName;
             if (_backupName == null)
             {
                 var message = "The backup name defauts to this EC2 Instances's 'Name' tag.";
@@ -30,7 +30,7 @@ namespace Cloudoman.AwsTools.Snapshotter
 
             // Get Snapshots with given backup name
             _snapshotsInfo = GetAllSnapshots();
-            if (_snapshotsInfo.Count == 0 )
+            if (_snapshotsInfo.ToList().Count == 0 )
             {
                 var message = "No snapshots were found for BackupName:" + _backupName; 
                 Logger.Error(message, "RestoreManager");
@@ -38,7 +38,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             }
 
             // Get Snapshot timestamp from Request or default to latest
-            _timeStamp = (request.TimeStamp == null) ? (GetLatestSnapshotTimeStamp()) : request.TimeStamp;
+            _timeStamp = request.TimeStamp ?? (GetLatestSnapshotTimeStamp());
             if (_timeStamp == null)
             {
                 var message = "No timestamp was explicitly provided. Unable to determine the timestamp of the latest snapshot. Exitting.";
@@ -73,7 +73,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                 TimeStamp = x.Tag.Get("TimeStamp"),
             }));
 
-            snapshotsInfo = snapshotsInfo.OrderByDescending(x => Convert.ToDateTime(x.TimeStamp));
+            snapshotsInfo = snapshotsInfo.OrderByDescending(x => Convert.ToDateTime(x.TimeStamp)).ToList();
             return snapshotsInfo;
         }
 
@@ -103,7 +103,7 @@ namespace Cloudoman.AwsTools.Snapshotter
 
             // Find Snapshots to Restore
             var snapshots = _snapshotsInfo.Where(x => Convert.ToDateTime(x.TimeStamp) == Convert.ToDateTime(_timeStamp));
-            snapshotInfo.ForEach( x => Logger.Info(x.ToString(),"StartRestore"));
+            snapshots.ToList().ForEach(x => Logger.Info(x.ToString(), "StartRestore"));
         }
 
     }
