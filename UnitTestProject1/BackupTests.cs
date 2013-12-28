@@ -12,8 +12,9 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         [TestMethod]
         public void BackupVolumes()
         {
-            var bm = new BackupManager("ProdWeb");
-            bm.StartBackup();
+            var backupRequest = new BackupRequest { BackupName = "ProdWeb" };
+            var backupManager = new BackupManager(backupRequest);
+            backupManager.StartBackup();
         }
 
         [TestMethod]
@@ -44,6 +45,12 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         public void GetServerName()
         {
             Console.WriteLine(InstanceInfo.ServerName);
+        }
+
+        [TestMethod]
+        public void GetWindowsHostName()
+        {
+            Console.WriteLine(System.Net.Dns.GetHostName());
         }
     }
 }

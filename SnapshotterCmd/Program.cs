@@ -27,7 +27,8 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
                 switch (operation)
                 {
                     case "backup":
-                        var backupManager = new BackupManager(backupName);
+                        var backupRequest = new BackupRequest { BackupName = backupName };
+                        var backupManager = new BackupManager(backupRequest);
                         backupManager.StartBackup();
                         break;
                     case "restore":

@@ -17,20 +17,19 @@ namespace Cloudoman.AwsTools.Snapshotter
         IVssBackupComponents _vssBackupComponents;
 
 
-        public BackupManager(string backupName)
+        public BackupManager(BackupRequest request)
         {
             // Get Backup Name from Request or from Instance NAME tag
-            _backupName = backupName ?? InstanceInfo.ServerName;
-            if (_backupName == null)
+            _backupName = request.BackupName ?? InstanceInfo.ServerName;
+            if ( String.IsNullOrEmpty(_backupName))
             {
-                var message = "The backup name defauts to this EC2 Instances's 'Name' tag.";
-                message += "Please explicitly provide a backup name OR tag this EC2 instance with a name";
-                message += "from the AWS Console or using the AWS API.";
+                _backupName = System.Net.Dns.GetHostName();
+                var message = "When a backupname is not provided, it's defauted to this EC2 Instances's 'Name' tag .";
+                message += "Unable to determing either. Falling back to this EC2 Instance's hostname.";
 
-                Logger.Error(message, "RestoreManager");
-                throw new System.ApplicationException(message);
+                Logger.Info(message, "BackupManager");
+                Logger.Info("Backup name:" + _backupName, "BackupManager");
             }
-
         }
 
         public void StartBackup()
@@ -65,13 +64,6 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         bool CheckBackupPreReqs()
         {
-
-            // Ensure the instance has a "Name" tag for identifying server
-            if (String.IsNullOrEmpty(InstanceInfo.ServerName))
-            {
-                Logger.Error("This Instance must be tagged with a server name before it's volumes can be snapshotted.\nExitting.", "CheckBackupPreReqs");
-                return false;
-            }
 
             // Check instance has EBS volumes to snapshot
             // excluding boot volume
@@ -109,7 +101,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             try
             {
                 // Create Snapshot Request
-                var fullDescription = String.Format("ServerName:{0}, DeviceName:{1}", InstanceInfo.ServerName, backupVolumeInfo.DeviceName);
+                var fullDescription = String.Format("DeviceName:{0}, Drive:{1}", backupVolumeInfo.DeviceName, backupVolumeInfo.Drive);
                 var request = new CreateSnapshotRequest
                 {
                     VolumeId = backupVolumeInfo.VolumeId,
@@ -133,7 +125,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                         new Tag {Key = "InstanceId", Value = InstanceInfo.InstanceId},
                         new Tag {Key = "DeviceName", Value = backupVolumeInfo.DeviceName},
                         new Tag {Key = "Drive", Value = backupVolumeInfo.Drive},
-                        new Tag {Key = "Name", Value = "Snapshotter Backup: " + InstanceInfo.ServerName},
+                        new Tag {Key = "Name", Value = "Snapshotter Backup: " + _backupName},
                         new Tag {Key = "BackupName", Value = _backupName}
                     }
                 };
