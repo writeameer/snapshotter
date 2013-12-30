@@ -6,6 +6,7 @@ using Amazon.EC2.Model;
 using Amazon.Util;
 using Cloudoman.AwsTools.Snapshotter.Helpers;
 using Cloudoman.AwsTools.Snapshotter.Models;
+using System.Net;
 
 namespace Cloudoman.AwsTools.Snapshotter
 {
@@ -15,40 +16,44 @@ namespace Cloudoman.AwsTools.Snapshotter
         List<VolumeInfo> _volumesInfo;
         IVssImplementation _vssImplementation;
         IVssBackupComponents _vssBackupComponents;
-
+        readonly string _hostName = Dns.GetHostName();
+        BackupRequest _request;
 
         public BackupManager(BackupRequest request)
         {
             // Get Backup Name from Request or from Instance NAME tag
-            _backupName = request.BackupName ?? InstanceInfo.ServerName;
+            _request = request;
+            _backupName = _request.BackupName ?? InstanceInfo.ServerName;
             if ( String.IsNullOrEmpty(_backupName))
             {
-                _backupName = System.Net.Dns.GetHostName();
+                _backupName = _hostName;
                 var message = "When a backupname is not provided, it's defauted to this EC2 Instances's 'Name' tag .";
                 message += "Unable to determing either. Falling back to this EC2 Instance's hostname.";
 
                 Logger.Info(message, "BackupManager");
                 Logger.Info("Backup name:" + _backupName, "BackupManager");
             }
-        }
 
-        public void StartBackup()
-        {
 
-            // Get Volumes attached to local instance 
-            // other than the boot volume
+            // Get Volumes attached to local instance and generate
+            // additional meta data (DriveName, Hostname, TimeStamp etc)
+            // in preparation for snapshotting
+
             var volumes = InstanceInfo.GetMyVolumes();
             _volumesInfo = volumes.Where(v => v.Attachment[0].Device != "/dev/sda1").Select(x => new VolumeInfo
             {
                 VolumeId = x.Attachment[0].VolumeId,
                 DeviceName = x.Attachment[0].Device,
-                Drive = x.Tag.Where(t => t.Key == "Drive").Select(d => d.Value).FirstOrDefault(),
-                ServerName = InstanceInfo.ServerName,
+                Drive = x.Tag.Get("Drive"),
+                Hostname = _hostName,
                 BackupName = _backupName,
                 TimeStamp = AWSSDKUtils.FormattedCurrentTimestampRFC822
             }).ToList();
 
+        }
 
+        public void StartBackup()
+        {
             // Check pre-requisites before intiating backup
             if (!CheckBackupPreReqs())
             {
@@ -120,7 +125,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                     ResourceId = new List<string> { snapshotId },
                     Tag = new List<Tag>{
                         new Tag {Key = "TimeStamp", Value = backupVolumeInfo.TimeStamp},
-                        new Tag {Key = "ServerName", Value = backupVolumeInfo.ServerName},
+                        new Tag {Key = "HostName", Value = backupVolumeInfo.Hostname},
                         new Tag {Key = "VolumeId", Value = backupVolumeInfo.VolumeId},
                         new Tag {Key = "InstanceId", Value = InstanceInfo.InstanceId},
                         new Tag {Key = "DeviceName", Value = backupVolumeInfo.DeviceName},
@@ -132,7 +137,7 @@ namespace Cloudoman.AwsTools.Snapshotter
 
                 // Tag Snapshot
                 InstanceInfo.Ec2Client.CreateTags(tagRequest);
-                Logger.Info("Server " + InstanceInfo.ServerName + ":" + InstanceInfo.InstanceId + " Volume Id:" + backupVolumeInfo.VolumeId + " was snapshotted and tagged.", "SnapShotVolume");
+                Logger.Info("HostName " + _hostName + ":" + InstanceInfo.InstanceId + " Volume Id:" + backupVolumeInfo.VolumeId + " was snapshotted and tagged.", "SnapShotVolume");
             }
             catch (Exception e)
             {
@@ -144,13 +149,20 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         void BackupVolumes()
         {
+            
+            if (_request.WhatIf)
+            {
+                Logger.Warning("***** Backup will not be taken. WhatIf is True *****", "BackupVolumes");
+            }
+            Console.WriteLine(new VolumeInfo().FormattedHeader);
             // Backup Each Volume
             _volumesInfo.ForEach(x =>
             {
+                Console.WriteLine(x.ToString());
                 // Snapshot Volume
                 var driveName = x.Drive + ":\\";
                 StartVssBackup(driveName);
-                SnapshotVolume(x);
+                if (!_request.WhatIf) SnapshotVolume(x);
                 AbortVssBackup();
             });
         }
@@ -171,6 +183,14 @@ namespace Cloudoman.AwsTools.Snapshotter
         void AbortVssBackup()
         {
             _vssBackupComponents.AbortBackup();
+        }
+
+        public void GetDrivetoAwsDeviceMapping()
+        {
+            _volumesInfo.ForEach(x => {
+                var something = AwsDevices.GetDriveFromVolumeId(x);
+                Console.WriteLine(something);
+            });
         }
     }
 }

@@ -52,5 +52,12 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         {
             Console.WriteLine(System.Net.Dns.GetHostName());
         }
+
+        [TestMethod]
+        public void GetVolumetoDeviceMapping()
+        {
+            var bm = new BackupManager(new BackupRequest());
+            bm.GetDrivetoAwsDeviceMapping();
+        }
     }
 }

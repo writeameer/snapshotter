@@ -9,5 +9,6 @@ namespace Cloudoman.AwsTools.Snapshotter.Models
     {
         public string TimeStamp { get; set; }
         public string BackupName { get; set; }
+        public bool WhatIf { get; set; }
     }
 }

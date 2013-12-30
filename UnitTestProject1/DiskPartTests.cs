@@ -85,10 +85,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         [TestMethod]
         public void GetAwsDeviceFromScsiId()
         {
-            var a = AwsDevices.GetDeviceFromScsiId(1);
-            Console.WriteLine(a);
-            a = AwsDevices.GetDeviceFromScsiId(5);
-            Console.WriteLine(a);
+
         }
     }
 }

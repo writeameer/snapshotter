@@ -33,9 +33,9 @@ namespace Cloudoman.AwsTools.Snapshotter
             _allSnapshots = GetAllSnapshots();
             if (_allSnapshots.ToList().Count == 0 )
             {
-                var message = "No snapshots were found for BackupName:" + _backupName + " and timestamp: " + _timeStamp; 
-                Logger.Error(message, "RestoreManager");
-                throw new System.ApplicationException(message);
+                var message = "No snapshots were found for BackupName:" + _backupName + " and timestamp: " + _timeStamp + ".Exitting"; 
+                Logger.Info(message, "RestoreManager");
+                return;
             }
 
             // Get Snapshot timestamp from Request or default to latest in _snapshotInfo
@@ -68,7 +68,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                 SnapshotId = x.SnapshotId,
                 BackupName = x.Tag.Get("BackupName"),
                 DeviceName = x.Tag.Get("DeviceName"),
-                ServerName = x.Tag.Get("ServerName"),
+                Hostname = x.Tag.Get("HostName"),
                 Drive = x.Tag.Get("Drive"),
                 TimeStamp = x.Tag.Get("TimeStamp"),
             }));
