@@ -17,10 +17,10 @@ namespace Cloudoman.DiskTools
 
         public static bool GetBool(this string[] rawOutput, string key)
         {
-            var firstOrDefault = rawOutput.FirstOrDefault(x => x.ToLower().Contains(key.ToLower()));
-            if (firstOrDefault != null)
+            var row = rawOutput.FirstOrDefault(x => x.ToLower().Contains(key.ToLower()));
+            if (row != null)
             {
-                var info = firstOrDefault;
+                var info = row;
                 info = info.Split(':')[1].Trim();
                 return info == "Yes";
             }
@@ -29,10 +29,10 @@ namespace Cloudoman.DiskTools
 
         public static string GetString(this string[] rawOutput, string key)
         {
-            var firstOrDefault = rawOutput.FirstOrDefault(x => x.ToLower().Contains(key.ToLower()));
-            if (firstOrDefault != null)
+            var row = rawOutput.FirstOrDefault(x => x.ToLower().Contains(key.ToLower()));
+            if (row != null)
             {
-                var info = firstOrDefault;
+                var info = row;
                 info = info.Split(':')[1].Trim();
                 return info;
             }

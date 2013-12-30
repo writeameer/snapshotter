@@ -43,6 +43,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="Models\Disk.cs" />
     <Compile Include="DiskPart.cs" />
+    <Compile Include="Models\DiskDetail.cs" />
     <Compile Include="Models\DiskPartResponse.cs" />
     <Compile Include="Models\Volume.cs" />
     <Compile Include="Models\VolumeDetail.cs" />

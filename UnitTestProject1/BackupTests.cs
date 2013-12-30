@@ -38,7 +38,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         [TestMethod]
         public void GetScsiTargets()
         {
-            AwsDevices.GetScsiId();
+            //AwsDevices.GetScsiId();
         }
 
         [TestMethod]
@@ -54,10 +54,22 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         }
 
         [TestMethod]
-        public void GetVolumetoDeviceMapping()
+        public void ListMyVolumes()
         {
-            var bm = new BackupManager(new BackupRequest());
-            bm.GetDrivetoAwsDeviceMapping();
+            //var a = InstanceInfo.Volumes;
+            //a.ForEach(x =>
+            //{
+            //    var device = x.Attachment[0].Device;
+            //    device = device.Contains("/dev/") ? device : "/dev/" + device;
+            //    Console.WriteLine("{0} {1}", device, AwsDevices.GetDiskFromAwsVolume(x));
+            //});
+
+            var something = AwsDevices.AwsDeviceMappings.FirstOrDefault();
+
+            Console.WriteLine(something.Device);
+            Console.WriteLine(something.DiskNumber);
+            Console.WriteLine(something.Drive);
+            Console.WriteLine(something.VolumeId);
         }
     }
 }

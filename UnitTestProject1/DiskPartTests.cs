@@ -3,7 +3,7 @@ using System.Linq;
 using Cloudoman.AwsTools.Snapshotter.Helpers;
 using Cloudoman.DiskTools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
+using Cloudoman.DiskTools.Models;
 namespace Cloudoman.AwsTools.Snapshotter.Tests
 {
     [TestClass]
@@ -83,9 +83,11 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         }
 
         [TestMethod]
-        public void GetAwsDeviceFromScsiId()
+        public void DetailDisk()
         {
-
+            var detail = _diskPart.DiskDetail(1).Volume.Num;
+            Console.WriteLine(detail);
+            
         }
     }
 }

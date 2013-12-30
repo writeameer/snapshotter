@@ -163,6 +163,56 @@ namespace Cloudoman.DiskTools
             return volumeDetail;
         }
 
+        public DiskDetail DiskDetail(int diskNumber)
+        {
+            var disks = ListDisk();
+            
+            // Return if disk does not exist
+            if (disks.Count(x => x.Num == diskNumber) == 0 ) return null;
+            
+            // Run Disk Part Comand to get Volume Detail
+            var command = @"
+                select disk $number
+                detail disk
+                EXIT
+            ";
+            command = command.Replace("$number", diskNumber.ToString());
+
+            var output = RunCommand(command);
+
+            var diskDetail = new DiskDetail
+            {
+                DiskId = output.GetString("Disk ID"),
+                Type = output.GetString("Type"),
+                Status = output.GetString("Status"),
+                Path = output.GetString("Path"),
+                Target = output.GetString("Target"),
+                LunId = output.GetString("LUN ID"),
+                LocationPath = output.GetString("Location Path"),
+                ReadOnly = output.GetBool("Current Read-only State"),
+                BootDisk = output.GetBool("Boot Disk"),
+                PageFileDisk = output.GetBool("Pagefile Disk"),
+                HibernationFileDisk = output.GetBool("Hibernation File Disk"),
+                CrashdumpDisk = output.GetBool("Crashdump Disk"),
+                ClusteredDisk = output.GetBool("Clustered Disk")
+            };
+
+            diskDetail.Volume = output.Skip(24).Take(1)
+                                     .Select(x => new Volume
+                                     {
+                                         Num = int.Parse(x.Substring(2, 10).Split(' ')[1]),
+                                         Letter = x.Substring(14, 3).Trim().NullIfEmpty(),
+                                         Label = x.Substring(19, 11).Trim().NullIfEmpty(),
+                                         FileSystem = x.Substring(32, 4).Trim().NullIfEmpty(),
+                                         Type = x.Substring(39, 10).Trim().NullIfEmpty(),
+                                         Size = x.Substring(51, 7).Trim().NullIfEmpty(),
+                                         Status = x.Substring(60, 9).Trim().NullIfEmpty(),
+                                         Info = x.Substring(69, 8).Trim().NullIfEmpty()
+                                     }).FirstOrDefault();
+
+            return diskDetail;
+
+        }
         public DiskPartResponse AssignDriveLetter(int volumeNumber, string letter)
         {
             var status = false;

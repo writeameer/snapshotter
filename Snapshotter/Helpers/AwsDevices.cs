@@ -3,56 +3,81 @@ using System;
 using System.Management;
 using System.Linq;
 using System.Collections.Generic;
+using Amazon.EC2.Model;
 namespace Cloudoman.AwsTools.Snapshotter.Helpers
 {
     public static class AwsDevices
     {
          
-        static EbsDriveInfo ebsDriveInfo;
-        static Dictionary<string,string> DeviceToDrive= new Dictionary<string,string>();
-
+        public static readonly IEnumerable<AwsDeviceMapping> AwsDeviceMappings;
         static AwsDevices()
         {
-            var volume = InstanceInfo.GetMyVolumes();
-            var a = volume.ForEach(x => x.Attachment.Aggregate(d => d.Device));
-
-            
+            AwsDeviceMappings = GetAwsDeviceMapping();
         }
 
-        public static string GetAwsDeviceFromScsiTargetId(int id)
+        static int AwsDeviceToSCSITarget(string device)
         {
-            if (id == 0) return "/dev/sda1";
-            return "/dev/xvd" + (char)(id + 97);
+
+            // AWS Maps devices to SCSITargetId like this:
+            // AWS Device| Location (Windows Disk Property)
+            // xvdb | Target ID 1
+            // xvdc | Target ID 2
+            // xvdd | Target ID 3
+
+            if (device == "/dev/sda1") return 0;
+            var ScsiId = device[device.Length - 1];
+
+            return (ScsiId - 97);
         }
 
-        
-        public static string GetScsiId()
+        /// <summary>
+        /// Returns the Windows Physical Disk Number attached to a given AWS Ebs Volume
+        /// </summary>
+        /// <param name="DiskNumber"></param>
+        /// <returns></returns>
+        static int GetDiskFromAwsVolume(Volume volume)
         {
-            var query = new SelectQuery("Select DeviceId,SCSITargetId From win32_DiskDrive where SCSITargetId < 16");
+            var device = volume.Attachment[0].Device;
+
+            // AWS is inconsistent. Responds with "/dev/sda1" for root device
+            // but with only "xvdf" or "xvdg" for other devices
+            // Prefixing all with  "/dev/" for consistency
+            device = device.Contains("/dev/") ? device : "/dev/" + device;
+
+            // Get Windows DiskInfo(DeviceId) from AWSDevice(SCSITargetId) Win32_DiskDrive WMI counter
+            var scsiTargetId = AwsDeviceToSCSITarget(device);
+            var query = new SelectQuery("Select DeviceId From Win32_DiskDrive where SCSITargetId ="+ scsiTargetId);
             var searcher = new ManagementObjectSearcher(query);
             var collection = searcher.Get();
 
+            int disk=0;
             foreach (var item in collection)
             {
-                var diskId = item["DeviceId"].ToString().Replace(@"\\.\PHYSICALDRIVE","");
-                var awsDeviceId = GetAwsDeviceFromScsiTargetId(int.Parse(item["SCSITargetId"].ToString()));
-                Console.WriteLine("{0} {1}", diskId, awsDeviceId);
+                var deviceId = item["DeviceId"].ToString();
+
+                // The WMI field deviceID normally looks like "\\.\PHYSICALDRIVE2"
+                // Extract the disk number only
+                disk = int.Parse(deviceId.Replace(@"\\.\PHYSICALDRIVE",""));
             }
-            return null;
+
+            return disk;
         }
 
-        public static string GetDriveFromVolumeId(VolumeInfo volumeInfo)
+
+        static IEnumerable<AwsDeviceMapping> GetAwsDeviceMapping()
         {
-            
+            var volumes = InstanceInfo.Volumes;
             var diskPart = new DiskTools.DiskPart();
-            var volume = diskPart.ListVolume().Where(x => x.Letter == volumeInfo.Drive).FirstOrDefault();
-            var windowsDisk = diskPart.VolumeDetail(volume.Num).Disk.Num;
+            var awsDeviceMappings = volumes.Select(x => new AwsDeviceMapping
+            {
+                Device = x.Attachment[0].Device,
+                VolumeId = x.VolumeId,
+                DiskNumber = GetDiskFromAwsVolume(x),
+                VolumeNumber = diskPart.DiskDetail(GetDiskFromAwsVolume(x)).Volume.Num,
+                Drive = diskPart.DiskDetail(GetDiskFromAwsVolume(x)).Volume.Letter
+            });
 
-
-
-            //var volumeDetail = diskPart.VolumeDetail();
-
-            return volumeInfo.DeviceName;
+            return awsDeviceMappings;
         }
 
     }

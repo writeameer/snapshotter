@@ -39,12 +39,13 @@ namespace Cloudoman.AwsTools.Snapshotter
             // additional meta data (DriveName, Hostname, TimeStamp etc)
             // in preparation for snapshotting
 
-            var volumes = InstanceInfo.GetMyVolumes();
+            var volumes = InstanceInfo.Volumes;
+
             _volumesInfo = volumes.Where(v => v.Attachment[0].Device != "/dev/sda1").Select(x => new VolumeInfo
             {
                 VolumeId = x.Attachment[0].VolumeId,
                 DeviceName = x.Attachment[0].Device,
-                Drive = x.Tag.Get("Drive"),
+                Drive = AwsDevices.AwsDeviceMappings.Where(d => d.VolumeId == x.VolumeId).Select(d => d.Drive).FirstOrDefault(),
                 Hostname = _hostName,
                 BackupName = _backupName,
                 TimeStamp = AWSSDKUtils.FormattedCurrentTimestampRFC822
@@ -78,23 +79,6 @@ namespace Cloudoman.AwsTools.Snapshotter
                 return false;
             }
 
-            // Ensure all volumes for this server have resources tags
-            // identifying their drive letters
-            var missingDriveLetters = _volumesInfo.Where(x => String.IsNullOrEmpty(x.Drive));
-            if (missingDriveLetters.Count() > 0)
-            {
-                var volumes = string.Join(",", missingDriveLetters.Select(x => x.VolumeId));
-                Logger.Error("All volumes must be tagged with EC2 resource tags marking their drive letter. For E.g. Key='Drive', Value='H'.", "CheckBackupPreReqs");
-                Logger.Error("The following volumes:", "SnapshotBackup");
-                Logger.Error(volumes, "SnapshotBackup");
-                Logger.Error(" do not contain EC2 resource tags marking their drive letter.\nExitting.", "CheckBackupPreReqs");
-                return false;
-            }
-
-            if (_backupName == null)
-            {
-                Logger.Error("A BackupName for the snapshots MUST be specified. Exitting...", "CheckBackupPreReqs");
-            }
             return true;
         }
 
@@ -187,10 +171,10 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void GetDrivetoAwsDeviceMapping()
         {
-            _volumesInfo.ForEach(x => {
-                var something = AwsDevices.GetDriveFromVolumeId(x);
-                Console.WriteLine(something);
-            });
+            //_volumesInfo.ForEach(x => {
+            //    var something = AwsDevices.GetDriveFromVolumeId(x);
+            //    Console.WriteLine(something);
+            //});
         }
     }
 }
