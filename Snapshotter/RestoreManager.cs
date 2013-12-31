@@ -115,9 +115,31 @@ namespace Cloudoman.AwsTools.Snapshotter
 
             // Find Snapshots to Restore
             var snapshots = GetSnapshotSet();
-            snapshots.ToList().ForEach(x => Logger.Info(x.ToString(), "RestoreManager.StartRestore"));
+            snapshots.ToList().ForEach(x =>
+            {
+                Console.WriteLine(x.ToString());
+                RestoreVolume(x);
+            });
         }
 
+        public void RestoreVolume(SnapshotInfo snapshot)
+        {
+            Logger.Info("Restore Snapshot:" + snapshot.SnapshotId,"RestoreVolume");
+
+            // Create a volume using the snapshot
+            var createVolumeRequest = new CreateVolumeRequest { SnapshotId = snapshot.SnapshotId, AvailabilityZone = InstanceInfo.AvailabilityZone };
+            var volume = InstanceInfo.Ec2Client.CreateVolume(createVolumeRequest).CreateVolumeResult.Volume;
+            
+            // Detach any volumes from requested device
+            var detachRequest = new DetachVolumeRequest { InstanceId = InstanceInfo.InstanceId, Device = snapshot.DeviceName, Force = true };
+            InstanceInfo.Ec2Client.DetachVolume(detachRequest);
+
+            // Attach volume to EC2 Instance
+            var attachRequest = new AttachVolumeRequest { InstanceId = InstanceInfo.InstanceId, VolumeId = volume.VolumeId, Device = snapshot.DeviceName };
+            var response = InstanceInfo.Ec2Client.AttachVolume(attachRequest);
+
+            //InstanceInfo.Ec2Client
+        }
         /// <summary>
         /// Lists snapshots matching timestamp passed in via constructor.
         /// List all available snapshots when timestamp was omitted
