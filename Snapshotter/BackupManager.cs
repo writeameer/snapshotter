@@ -40,7 +40,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             // in preparation for snapshotting
 
             var volumes = InstanceInfo.Volumes;
-
+            var timeStamp = AWSSDKUtils.FormattedCurrentTimestampRFC822;
             _volumesInfo = volumes.Where(v => v.Attachment[0].Device != "/dev/sda1").Select(x => new VolumeInfo
             {
                 VolumeId = x.Attachment[0].VolumeId,
@@ -48,7 +48,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                 Drive = AwsDevices.AwsDeviceMappings.Where(d => d.VolumeId == x.VolumeId).Select(d => d.Drive).FirstOrDefault(),
                 Hostname = _hostName,
                 BackupName = _backupName,
-                TimeStamp = AWSSDKUtils.FormattedCurrentTimestampRFC822
+                TimeStamp = timeStamp
             }).ToList();
 
         }

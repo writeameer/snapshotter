@@ -4,6 +4,8 @@ using Cloudoman.AwsTools.Snapshotter.Helpers;
 using Cloudoman.AwsTools.Snapshotter.Models;
 using System;
 using System.Linq;
+using System.Threading;
+
 
 namespace Cloudoman.AwsTools.Snapshotter
 {
@@ -81,16 +83,18 @@ namespace Cloudoman.AwsTools.Snapshotter
         string GetLatestSnapshotTimeStamp()
         {
             var newest = _allSnapshots.Max(x => Convert.ToDateTime(x.TimeStamp));
-            return _allSnapshots
+
+            var something = _allSnapshots
                         .Where(x => Convert.ToDateTime(x.TimeStamp) == newest)
                         .Select(x => x.TimeStamp).FirstOrDefault();
+            return something;
         }
 
         string GetOldestSnapshotTimeStamp()
         {
-            var newest = _allSnapshots.Min(x => Convert.ToDateTime(x.TimeStamp));
+            var oldest = _allSnapshots.Min(x => Convert.ToDateTime(x.TimeStamp));
             return _allSnapshots
-                        .Where(x => Convert.ToDateTime(x.TimeStamp) == newest)
+                        .Where(x => Convert.ToDateTime(x.TimeStamp) == oldest)
                         .Select(x => x.TimeStamp).FirstOrDefault();
         }
 
@@ -110,7 +114,7 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void StartRestore()
         {
-            Logger.Info("Starting Restore", "RestoreManager.StartRestore");
+            Logger.Info("Restore Started", "RestoreManager.StartRestore");
             Logger.Info("Backup Name:" + _backupName, "RestoreManager.StartRestore");
 
             // Find Snapshots to Restore
@@ -120,11 +124,13 @@ namespace Cloudoman.AwsTools.Snapshotter
                 Console.WriteLine(x.ToString());
                 RestoreVolume(x);
             });
+
+            Logger.Info("Restore Ended", "RestoreManager.StartRestore");
         }
 
         public void RestoreVolume(SnapshotInfo snapshot)
         {
-            Logger.Info("Restore Volume Started:" + snapshot.SnapshotId,"RestoreVolume");
+            Logger.Info("Restore Volume:" + snapshot.SnapshotId,"RestoreVolume");
 
             // Create New Volume and Tag it
             var volumeId = CreateVolume(snapshot);
@@ -156,7 +162,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                 GetSnapshotSet().ToList().ForEach(Console.WriteLine);
         }
 
-        static void SetDeleteOnTermination(string DeviceName, bool deleteOnTermination)
+        void SetDeleteOnTermination(string DeviceName, bool deleteOnTermination)
         {
             Logger.Info("SetDeleteOnTermination " + DeviceName + " to " + deleteOnTermination, "SetDeleteOnTermination");
 
@@ -256,7 +262,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                 try
                 {
 
-                    Logger.Info("Volume Id:" + currentVolume.VolumeId + " already attached to device: " + snapshot.DeviceName, "RestoreVolume");
+                    Logger.Info("Requested device:" + snapshot.DeviceName + " is already attached to a volume" + currentVolume.VolumeId , "DetachVolume");
                     Logger.Info("Detaching Volume", "RestoreVolume");
 
                     var detachRequest = new DetachVolumeRequest
@@ -269,7 +275,7 @@ namespace Cloudoman.AwsTools.Snapshotter
 
                     var response = InstanceInfo.Ec2Client.DetachVolume(detachRequest);
 
-                    Logger.Info("Detached Volume:" + snapshot.DeviceName + " Drive:" + snapshot.Drive, "RestoreVolume");
+                    Logger.Info("Detached Volume:" + currentVolume.VolumeId + " Drive:" + snapshot.Drive, "RestoreVolume");
                 }
                 catch (Amazon.EC2.AmazonEC2Exception ex)
                 {
@@ -279,6 +285,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                 }
             }
 
+            WaitAttachmentStatus(currentVolume.VolumeId, status: "available");
         }
 
         void AttachVolume(SnapshotInfo snapshot, string volumeId)
@@ -303,6 +310,41 @@ namespace Cloudoman.AwsTools.Snapshotter
                 Logger.Error("Error attaching volume.", "RestoreVolume");
                 Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume");
             }
+
+            WaitAttachmentStatus(volumeId, status: "in-use");
         }
+
+        string AttachmentStatus (string volumeId)
+        {
+            
+            var volume = InstanceInfo.Ec2Client.DescribeVolumes(new DescribeVolumesRequest { VolumeId = new List<string>{volumeId}})
+                                     .DescribeVolumesResult.Volume.FirstOrDefault();
+            var status = volume.Status ;
+            Logger.Info("Volume :" + volumeId + " status:" + status,"IsAttached" );
+            return status;
+        }
+
+        public void WaitAttachmentStatus(string volumeId, string status)
+        {
+            int retry = 5;
+            string currentStatus = null;
+
+            for (int i = 1; i <= retry - 1; i++ )
+            {
+                currentStatus = AttachmentStatus(volumeId);
+                if (currentStatus != status)
+                {
+                    Logger.Info("Attachment status:" + currentStatus + " ,Sleep 5 seconds.", "WaitAttachmentStatus");
+                    Thread.Sleep(5000);
+                }
+                else
+                    return;
+            }
+            
+            var message ="Volume attachment status still: " + currentStatus + ".Exitting.";
+            Logger.Error(message, "WaitForAttachment");
+            throw new System.ApplicationException(message);
+        }
+
     }
 }
