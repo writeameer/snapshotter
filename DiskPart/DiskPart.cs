@@ -114,6 +114,28 @@ namespace Cloudoman.DiskTools
             };
         }
 
+        public DiskPartResponse OfflineDisk(int diskNumber)
+        {
+            var status = false;
+            var command = @"
+                select disk $diskNumber
+                offline disk NOERR
+                EXIT
+            ";
+            command = command.Replace("$diskNumber", diskNumber.ToString());
+
+            var output = RunCommand(command);
+
+            var message = "successfully offlined the selected disk";
+            var message2 = "This disk is already offline";
+            status = (output.ToList().Any(x => x.ToLower().Contains(message.ToLower()) || x.ToLower().Contains(message2.ToLower())));
+
+            return new DiskPartResponse
+            {
+                Status = status,
+                Output = output
+            };
+        }
         public VolumeDetail VolumeDetail(int volumeNumber)
         {
             // Run Disk Part Comand to get Volume Detail

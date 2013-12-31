@@ -5,6 +5,7 @@ using Cloudoman.AwsTools.Snapshotter.Models;
 using System;
 using System.Linq;
 using System.Threading;
+using Cloudoman.DiskTools;
 
 
 namespace Cloudoman.AwsTools.Snapshotter
@@ -130,6 +131,7 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void RestoreVolume(SnapshotInfo snapshot)
         {
+            
             Logger.Info("Restore Volume:" + snapshot.SnapshotId,"RestoreVolume");
 
             // Create New Volume and Tag it
@@ -257,12 +259,18 @@ namespace Cloudoman.AwsTools.Snapshotter
             // Detach any existing volumes from requested device if 
             // it is not free
             var currentVolume = InstanceInfo.Volumes.Where(x => x.Attachment[0].Device == snapshot.DeviceName).FirstOrDefault();
+
+            
             if (currentVolume != null)
             {
                 try
                 {
 
                     Logger.Info("Requested device:" + snapshot.DeviceName + " is already attached to a volume" + currentVolume.VolumeId , "DetachVolume");
+
+                    // Take Windows Physical Disk Offline
+                    OfflineDrive(snapshot);
+
                     Logger.Info("Detaching Volume", "RestoreVolume");
 
                     var detachRequest = new DetachVolumeRequest
@@ -287,6 +295,25 @@ namespace Cloudoman.AwsTools.Snapshotter
 
             WaitAttachmentStatus(currentVolume.VolumeId, status: "available");
         }
+
+        void OfflineDrive(SnapshotInfo snapshot)
+        {
+            Logger.Info("Taking disk offline before detaching device:" + snapshot.DeviceName, "OfflineDrive");
+            // Find the Windows physical disk of the EBS volume
+            var diskPart = new DiskPart();
+            var volume = diskPart.ListVolume().Where(x => x.Letter == snapshot.Drive).FirstOrDefault();
+            var disk = diskPart.VolumeDetail(volume.Num).Disk;
+            
+            // Run Sync to commit pending changes
+            var response = diskPart.OfflineDisk(disk.Num);
+            if (!response.Status)
+            {
+                Logger.Error("Error taking disk offline", "OfflineDrive");
+                Logger.Error("Diskpart Output:" + response.Output, "OfflineDrive");
+            }
+            Logger.Info("Disk was taken offline", "OffineDrive");
+        }
+
 
         void AttachVolume(SnapshotInfo snapshot, string volumeId)
         {
@@ -326,16 +353,17 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void WaitAttachmentStatus(string volumeId, string status)
         {
-            int retry = 5;
+            int retry = 12;
+            int waitInSeconds = 10;
             string currentStatus = null;
 
-            for (int i = 1; i <= retry - 1; i++ )
+            for (int i = 1; i <= retry; i++ )
             {
                 currentStatus = AttachmentStatus(volumeId);
                 if (currentStatus != status)
                 {
-                    Logger.Info("Attachment status:" + currentStatus + " ,Sleep 5 seconds.", "WaitAttachmentStatus");
-                    Thread.Sleep(5000);
+                    Logger.Info("Attachment status:" + currentStatus + " ,Sleep "+ waitInSeconds + " seconds.", "WaitAttachmentStatus");
+                    Thread.Sleep(waitInSeconds * 1000);
                 }
                 else
                     return;
