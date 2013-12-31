@@ -124,22 +124,23 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void RestoreVolume(SnapshotInfo snapshot)
         {
-            Logger.Info("Restore Snapshot:" + snapshot.SnapshotId,"RestoreVolume");
+            Logger.Info("Restore Volume Started:" + snapshot.SnapshotId,"RestoreVolume");
 
-            // Create a volume using the snapshot
-            var createVolumeRequest = new CreateVolumeRequest { SnapshotId = snapshot.SnapshotId, AvailabilityZone = InstanceInfo.AvailabilityZone };
-            var volume = InstanceInfo.Ec2Client.CreateVolume(createVolumeRequest).CreateVolumeResult.Volume;
-            
-            // Detach any volumes from requested device
-            var detachRequest = new DetachVolumeRequest { InstanceId = InstanceInfo.InstanceId, Device = snapshot.DeviceName, Force = true };
-            InstanceInfo.Ec2Client.DetachVolume(detachRequest);
+            // Create New Volume and Tag it
+            var volumeId = CreateVolume(snapshot);
+            TagVolume(snapshot, volumeId);
 
-            // Attach volume to EC2 Instance
-            var attachRequest = new AttachVolumeRequest { InstanceId = InstanceInfo.InstanceId, VolumeId = volume.VolumeId, Device = snapshot.DeviceName };
-            var response = InstanceInfo.Ec2Client.AttachVolume(attachRequest);
+            // Detach Volume if any
+            DetachVolume(snapshot);
 
-            //InstanceInfo.Ec2Client
+            //Attach new volume
+            AttachVolume(snapshot, volumeId);
+ 
+            // Set Delete on termination to TRUE for restored volume
+            SetDeleteOnTermination(snapshot.DeviceName, true);
         }
+
+
         /// <summary>
         /// Lists snapshots matching timestamp passed in via constructor.
         /// List all available snapshots when timestamp was omitted
@@ -155,5 +156,153 @@ namespace Cloudoman.AwsTools.Snapshotter
                 GetSnapshotSet().ToList().ForEach(Console.WriteLine);
         }
 
+        static void SetDeleteOnTermination(string DeviceName, bool deleteOnTermination)
+        {
+            Logger.Info("SetDeleteOnTermination " + DeviceName + " to " + deleteOnTermination, "SetDeleteOnTermination");
+
+            try
+            {
+                var modifyAttrRequest = new ModifyInstanceAttributeRequest
+                {
+                    InstanceId = InstanceInfo.InstanceId,
+                    BlockDeviceMapping = new List<InstanceBlockDeviceMappingParameter>
+                    {
+                        new InstanceBlockDeviceMappingParameter{
+                            DeviceName="xvdf",
+                            Ebs = new InstanceEbsBlockDeviceParameter{DeleteOnTermination = true,VolumeId="vol-c32e2eea"}
+                        }
+                    }
+                };
+
+                var response = InstanceInfo.Ec2Client.ModifyInstanceAttribute(modifyAttrRequest);
+            }
+            catch (Amazon.EC2.AmazonEC2Exception ex)
+            {
+                Logger.Error("Error setting DeleteOnTermination flag for:" + DeviceName, "SetDeleteOnTermination");
+                Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume");
+            }
+            
+        }
+
+        string CreateVolume(SnapshotInfo snapshot)
+        {
+            Logger.Info("Creating Volume for snapshot :" + snapshot.SnapshotId, "CreateVolume");
+
+            string volumeId = "";
+            try
+            {
+                var createVolumeRequest = new CreateVolumeRequest
+                {
+                    SnapshotId = snapshot.SnapshotId,
+                    AvailabilityZone = InstanceInfo.AvailabilityZone,
+                };
+
+
+                var volume = InstanceInfo.Ec2Client.CreateVolume(createVolumeRequest).CreateVolumeResult.Volume;
+                volumeId = volume.VolumeId;
+                Logger.Info("Created Volume:" + volumeId, "RestoreVolume");
+
+            }
+            catch (Amazon.EC2.AmazonEC2Exception ex)
+            {
+                Logger.Error("Could not create volume.", "RestoreVolume");
+                Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume");
+                return null;
+            }
+
+            return volumeId;
+        }
+
+        void TagVolume(SnapshotInfo snapshot, string volumeId)
+        {
+                        // Tag restored volume
+            try
+            {
+                Logger.Info("Tagging restored volume with backup metadata", "RestoreVolume");
+                var tagRequest = new CreateTagsRequest
+                {
+                    ResourceId = new List<string> { volumeId },
+                    Tag = new List<Tag>{
+                        new Tag {Key = "TimeStamp", Value = snapshot.TimeStamp},
+                        new Tag{Key="HostName", Value=InstanceInfo.HostName},
+                        new Tag{Key="SnapshotId", Value=snapshot.SnapshotId},
+                        new Tag{Key="InstanceID", Value=InstanceInfo.InstanceId},
+                        new Tag{Key="DeviceName", Value=snapshot.DeviceName},
+                        new Tag{Key="DeviceName", Value=snapshot.Drive},
+                        new Tag{Key="Name", Value="Snapshotter Restore: " + _backupName},
+                        new Tag{Key="BackupName", Value=_backupName},
+                    }
+                };
+
+                InstanceInfo.Ec2Client.CreateTags(tagRequest);
+
+            }
+            catch (Amazon.EC2.AmazonEC2Exception ex)
+            {
+                Logger.Error("Error tagging volume:" + volumeId,"RestoreVolume");
+                Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume");
+            }
+
+
+        }
+
+        void DetachVolume(SnapshotInfo snapshot)
+        {
+            // Detach any existing volumes from requested device if 
+            // it is not free
+            var currentVolume = InstanceInfo.Volumes.Where(x => x.Attachment[0].Device == snapshot.DeviceName).FirstOrDefault();
+            if (currentVolume != null)
+            {
+                try
+                {
+
+                    Logger.Info("Volume Id:" + currentVolume.VolumeId + " already attached to device: " + snapshot.DeviceName, "RestoreVolume");
+                    Logger.Info("Detaching Volume", "RestoreVolume");
+
+                    var detachRequest = new DetachVolumeRequest
+                    {
+                        InstanceId = InstanceInfo.InstanceId,
+                        VolumeId = currentVolume.VolumeId,
+                        Device = snapshot.DeviceName,
+                        Force = true
+                    };
+
+                    var response = InstanceInfo.Ec2Client.DetachVolume(detachRequest);
+
+                    Logger.Info("Detached Volume:" + snapshot.DeviceName + " Drive:" + snapshot.Drive, "RestoreVolume");
+                }
+                catch (Amazon.EC2.AmazonEC2Exception ex)
+                {
+                    Logger.Error("Error while detaching existing volume", "RestoreVolume");
+                    Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume");
+                    return;
+                }
+            }
+
+        }
+
+        void AttachVolume(SnapshotInfo snapshot, string volumeId)
+        {
+            // Attach volume to EC2 Instance
+            try
+            {
+                Logger.Info("Attaching Volume to Instance", "RestoreVolume");
+                var attachRequest = new AttachVolumeRequest
+                {
+                    InstanceId = InstanceInfo.InstanceId,
+                    VolumeId = volumeId,
+                    Device = snapshot.DeviceName
+                };
+
+                var result = InstanceInfo.Ec2Client.AttachVolume(attachRequest).AttachVolumeResult;
+                Logger.Info("Attached Volume:" + volumeId, "RestoreVolume");
+                Logger.Info("Attachment result:" + result.Attachment.AttachTime, "RestoreVolume");
+            }
+            catch (Amazon.EC2.AmazonEC2Exception ex)
+            {
+                Logger.Error("Error attaching volume.", "RestoreVolume");
+                Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume");
+            }
+        }
     }
 }

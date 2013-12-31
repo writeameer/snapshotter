@@ -20,7 +20,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
         public static readonly List<Volume> Volumes;
         public static readonly IEnumerable<string> FreeDevices;
         public static readonly string AvailabilityZone;
-
+        public static readonly string HostName = Dns.GetHostName();
         static InstanceInfo()
         {
             InstanceId = GetInstanceId();
@@ -37,11 +37,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
         static readonly Func<string> GetInstanceId = () => Web.DownloadString("http://169.254.169.254/latest/meta-data/instance-id");
 
         static readonly Func<string> GetAvailabilityZone = () =>
-        {
-            var availabilityZone =
                 Web.DownloadString("http://169.254.169.254/latest/meta-data/placement/availability-zone");
-            return "https://ec2." + availabilityZone.Remove(availabilityZone.Length - 1) + ".amazonaws.com";
-        };
 
         static readonly Func<string> GetEc2Region = () =>
         {

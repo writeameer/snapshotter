@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Cloudoman.AwsTools.Snapshotter;
+using Cloudoman.AwsTools.Snapshotter.Helpers;
 using Cloudoman.AwsTools.Snapshotter.Models;
+using Amazon.EC2.Model;
+using Amazon.EC2;
 
 
 namespace Cloudoman.AwsTools.Snapshotter.Tests
@@ -20,6 +23,24 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
             var restoreManager = new RestoreManager(request);
             restoreManager.List();
 
+        }
+
+        [TestMethod]
+        public void ModifyInstanceAttribute()
+        {
+            var modifyAttrRequest = new ModifyInstanceAttributeRequest
+            {
+                InstanceId = InstanceInfo.InstanceId,
+                BlockDeviceMapping = new List<InstanceBlockDeviceMappingParameter>
+                {
+                    new InstanceBlockDeviceMappingParameter{
+                        DeviceName="xvdf",
+                        Ebs = new InstanceEbsBlockDeviceParameter{DeleteOnTermination = false,VolumeId="vol-c32e2eea"}
+                    }
+                }
+            };
+            var response = InstanceInfo.Ec2Client.ModifyInstanceAttribute(modifyAttrRequest);
+            Console.WriteLine(response.ResponseMetadata);
         }
     }
 }
