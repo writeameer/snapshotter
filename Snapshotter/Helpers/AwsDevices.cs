@@ -102,6 +102,17 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
         {
             var volumes = InstanceInfo.Volumes;
             var diskPart = new DiskTools.DiskPart();
+            var mappings = new List<AwsDeviceMapping>();
+
+            // Get all offline disks
+            var offlineDisks = diskPart.ListDisk().Where(x => x.Status == "Offline"); ;
+
+            if (offlineDisks.Count() > 0 )
+            {
+                var message = "All disk need to be online in order for mapping an AWS Device to a Windows volume. Please online all disks. Exitting.";
+                Logger.Error(message,"AWSDevices.GetAwsDeviceMapping");
+            }
+
             var awsDeviceMappings = volumes.Select(x => new AwsDeviceMapping
             {
                 Device = x.Attachment[0].Device,
@@ -111,6 +122,26 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
                 Drive = diskPart.DiskDetail(GetDiskFromAwsVolume(x)).Volume.Letter
             });
 
+            //foreach ( var volume in volumes)
+            //{
+            //    var device = volume.Attachment[0].Device;
+            //    var volumeId = volume.VolumeId;
+            //    var diskNumber = GetDiskFromAwsVolume(volume);
+
+            //    var diskDetail = diskPart.DiskDetail(diskNumber);
+            //    var volumeNumber = diskDetail.Volume.Num;
+            //    var drive = diskDetail.Volume.Letter;
+
+            //    var mapping = new AwsDeviceMapping
+            //    {
+            //        Device = device,
+            //        VolumeId = volumeId,
+            //        DiskNumber = diskNumber,
+            //        VolumeNumber = volumeNumber,
+            //        Drive = drive
+            //    };
+            //    mappings.Add(mapping);
+            //}
             return awsDeviceMappings;
         }
 

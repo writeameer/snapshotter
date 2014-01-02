@@ -47,7 +47,10 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         public void AwsDeviceMappings()
         {
             var test = AwsDevices.AwsDeviceMappings;
-            Console.WriteLine(test.FirstOrDefault().Device);
+            if (test == null)
+            { Console.WriteLine("yes"); };
+
+            //Console.WriteLine(test.FirstOrDefault().Device);
         }
     }
 }

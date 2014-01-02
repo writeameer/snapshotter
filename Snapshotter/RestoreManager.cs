@@ -133,6 +133,7 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void RestoreVolume(SnapshotInfo snapshot)
         {
+            var diskNumber=0;
 
             Logger.Info("Restore Volume:" + snapshot.SnapshotId, "RestoreManager.RestoreVolume");
 
@@ -144,13 +145,15 @@ namespace Cloudoman.AwsTools.Snapshotter
             var volume = VolumeAtDevice(snapshot);
             if (volume != null)
             {
-                // Offline Disk assocated with required device
-                OfflineDisk(snapshot);
+                // Find the Windows physical disk number attached to the AWS device (snapshot.DeviceName)
+                var mapping = AwsDevices.GetMapping(snapshot.DeviceName);
+                diskNumber = mapping.DiskNumber;
 
                 if (_request.ForceDetach)
                 {
-                    
-                    DetachVolume(snapshot);
+                    // Offline Disk assocated with required device
+                    OfflineDisk(mapping.DiskNumber);                    
+                    DetachVolume(mapping.VolumeId, mapping.Device);
                 }
                 else
                 {
@@ -162,11 +165,11 @@ namespace Cloudoman.AwsTools.Snapshotter
                 }
             }
             //Attach new volume
-            AttachVolume(snapshot, volumeId);
+            var newDisk = AttachVolume(snapshot, volumeId);
  
-            // Online Disk New Disk (Just onlining all disks here)
-            var diskPart = new DiskPart();
-            diskPart.ListDisk().ToList().ForEach(x => diskPart.OnlineDisk(x.Num));
+            // Online Disk New Disk
+            OnlineDrive(newDisk.Num, snapshot.Drive);
+
 
             // Set Delete on termination to TRUE for restored volume
             SetDeleteOnTermination(snapshot.DeviceName, true);
@@ -290,16 +293,9 @@ namespace Cloudoman.AwsTools.Snapshotter
             return currentVolume;
         }
 
-        void DetachVolume(SnapshotInfo snapshot)
+        void DetachVolume(string volumeId, string device)
         {
-            var mapping = AwsDevices.AwsDeviceMappings.FirstOrDefault(x => x.Device == snapshot.DeviceName);
-            if (mapping == null)
-            {
-                var message = "Could not find mappings for device: " + snapshot.DeviceName + ".Exitting";
-                Logger.Error(message, "RestoreManager.DetachVolume");
-            }
 
-            var currentVolumeId = mapping.VolumeId;
 
             try
             {
@@ -308,12 +304,14 @@ namespace Cloudoman.AwsTools.Snapshotter
                 var detachRequest = new DetachVolumeRequest
                 {
                     InstanceId = InstanceInfo.InstanceId,
-                    VolumeId = currentVolumeId,
-                    Device = snapshot.DeviceName,
+                    VolumeId = volumeId,
+                    Device = device,
                     Force = true
                 };
 
-                Logger.Info("Detached Volume:" + currentVolumeId + " Drive:" + snapshot.Drive, "RestoreVolume.DetachVolume");
+                var response = InstanceInfo.Ec2Client.DetachVolume(detachRequest);
+                Logger.Info("Attachment Status:" + response.DetachVolumeResult.Attachment.Status, "RestoreVolume.DetachVolume");
+                Logger.Info("Detached Volume:" + volumeId + " Device:" + device, "RestoreVolume.DetachVolume");
             }
             catch (Amazon.EC2.AmazonEC2Exception ex)
             {
@@ -322,64 +320,58 @@ namespace Cloudoman.AwsTools.Snapshotter
                 return;
             }
 
-            WaitAttachmentStatus(currentVolumeId, status: "available");
+            WaitAttachmentStatus(volumeId, status: "available");
         }
 
-        void OfflineDisk(SnapshotInfo snapshot)
+        void OfflineDisk(int diskNumber)
         {
-
-            Logger.Info("Taking disk offline on device:" + snapshot.DeviceName, "OfflineDisk");
-
-            // Find the Windows physical disk number attached to the AWS device (snapshot.DeviceName)
-            var mapping = AwsDevices.GetMapping(snapshot.DeviceName);
-            var diskNumber = mapping.DiskNumber;
-
             // Offline Disk
             var diskPart = new DiskPart();
             var response = diskPart.OfflineDisk(diskNumber);
             if (!response.Status)
             {
-                Logger.Error("Error taking disk offline", "OfflineDisk");
-                Logger.Error("Diskpart Output:" + response.Output, "OfflineDisk");
+                Logger.Error("Error taking disk offline.Diskpart Output:\n" + String.Join("\n",response.Output), "RestoreManager.OfflineDisk");
             }
-            Logger.Info("Disk was taken offline", "OffineDrive");
+            Logger.Info("Disk was taken offline", "RestoreManager.OfflineDisk");
         }
 
-        void OnlineDrive(SnapshotInfo snapshot)
+        void OnlineDrive(int diskNumber, string drive)
         {
-
-            Logger.Info("Bringing disk online on device:" + snapshot.DeviceName, "OnlineDrive");
-
-            // Find the Windows physical disk number attached to the AWS device (snapshot.DeviceName)
-            var mapping = AwsDevices.GetMapping(snapshot.DeviceName);
-            var diskNumber = mapping.DiskNumber;
+            Logger.Info("Bringing disk online on device:" + diskNumber, "RestoreManager.OnlineDisk");
 
             // Online Disk
             var diskPart = new DiskPart();
             var response = diskPart.OnlineDisk(diskNumber);
             if (!response.Status)
             {
-                Logger.Error("Error bringing disk online", "OnlineDrive");
-                Logger.Error("Diskpart Output:" + response.Output, "OnlineDrive");
+                Logger.Error("Error bringing disk online.\n Diskpart Output:" + response.Output, "OnlineDrive");
             }
 
             Logger.Info("Disk was brought online", "OnlineDrive");
 
             // Assign Volume appropriate Drive Letter
+            var volumeNumber = diskPart.DiskDetail(diskNumber).Volume.Num;
+            if (volumeNumber == 0 )
+            {
+                Logger.Error("Error determining volume number for new disk's volume" , "OnlineDrive");
+            }
+
             Logger.Info("Assigning drive letter", "OnlineDrive");
-            var assignResponse = diskPart.AssignDriveLetter(mapping.VolumeNumber, mapping.Drive);
+            var assignResponse = diskPart.AssignDriveLetter(volumeNumber, drive);
             if (assignResponse.Status)
             {
                 Logger.Info("Drive Letter successfully assigned", "RestoreManager.OnlineDrive");
                 return;
             }
 
-            Logger.Error("Error assigning drive letter", "OnlineDrive");
-            Logger.Error("Diskpart Output:" + assignResponse.Output, "OnlineDrive");
+            Logger.Error("Error assigning drive letter.\n Diskpart Output:" + assignResponse.Output, "OnlineDrive");
         }
 
-        void AttachVolume(SnapshotInfo snapshot, string volumeId)
+        DiskTools.Models.Disk AttachVolume(SnapshotInfo snapshot, string volumeId)
         {
+            var diskpart = new DiskPart();
+            var disksBefore = diskpart.ListDisk();
+
             // Attach volume to EC2 Instance
             try
             {
@@ -402,6 +394,37 @@ namespace Cloudoman.AwsTools.Snapshotter
             }
 
             WaitAttachmentStatus(volumeId, status: "in-use");
+
+
+            // Loop until new disk is detected by Windows
+            var waitInSeconds = 10;
+            var retry = 10;
+            DiskTools.Models.Disk newDisk = new DiskTools.Models.Disk();
+
+            var loop = true;
+            for (int i=1; i<=retry && loop; i++)
+            {
+                // Wait a few seconds
+                Thread.Sleep(waitInSeconds * 1000);
+                Logger.Info("Could not detect new disk, sleeping " + waitInSeconds + " seconds", "RestoreManager.AttachVolume");
+
+                loop = diskpart.ListDisk().Count() == disksBefore.Count();
+            }
+            if (disksBefore.Count() == diskpart.ListDisk().Count())
+            {
+                Logger.Error("Could not detect new disk after attaching volume", "RestoreManager.AttachVolume");
+            }
+
+            var disksAfter = diskpart.ListDisk();
+            newDisk = disksAfter.Except(disksBefore, new DiskTools.Models.DiskComparer()).FirstOrDefault();
+
+            if (newDisk.Num == 0)
+            {
+                Logger.Error("Could not detect new disk number for attached volume", "RestoreManager.AttachVolume");
+            }
+
+            Logger.Info("Windows detected new disk:" + newDisk.Num, "RestoreManager.AttachVolume");
+            return newDisk;
         }
 
         string AttachmentStatus (string volumeId)

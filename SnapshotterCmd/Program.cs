@@ -21,6 +21,7 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
                 var operation = parsed.Operation.ToString().ToLower();
                 var backupName = parsed.BackupName;
                 var timeStamp = parsed.TimeStamp;
+                var forceDetach = parsed.ForceDetach;
                 var whatIf = parsed.WhatIf;
 
 
@@ -33,7 +34,12 @@ namespace Cloudoman.AwsTools.SnapshotterCmd
                         backupManager.StartBackup();
                         break;
                     case "restore":
-                        var request = new RestoreRequest { BackupName = backupName, TimeStamp = timeStamp, WhatIf = whatIf };
+                        var request = new RestoreRequest { 
+                            BackupName = backupName, 
+                            TimeStamp = timeStamp, 
+                            ForceDetach = forceDetach,
+                            WhatIf = whatIf 
+                        };
                         var restoreManager = new RestoreManager(request);
                         restoreManager.StartRestore();
                         break;
