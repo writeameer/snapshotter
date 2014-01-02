@@ -8,6 +8,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
         public static void Error(string message, string module)
         {
             WriteEntry(message, "error", module);
+            throw new ApplicationException(message);
         }
 
         public static void Error(Exception ex, string module)

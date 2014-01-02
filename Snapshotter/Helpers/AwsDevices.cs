@@ -9,10 +9,17 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
     public static class AwsDevices
     {
          
-        public static readonly IEnumerable<AwsDeviceMapping> AwsDeviceMappings;
-        static AwsDevices()
+        public static IEnumerable<AwsDeviceMapping> AwsDeviceMappings { get {  return GetAwsDeviceMapping(); }}
+
+
+        public static AwsDeviceMapping GetMapping(string deviceName)
         {
-            AwsDeviceMappings = GetAwsDeviceMapping();
+            var mapping = AwsDeviceMappings.FirstOrDefault(x => x.Device == deviceName);
+            if (mapping != null) return mapping;
+            var message = "Could not find disk number for device: " + deviceName + ". Exitting.";
+            Logger.Error(message, "RestoreManager.OnlineDrive");
+
+            return null;
         }
 
         static int GetScsiTargetId(string awsDevice)
@@ -25,12 +32,12 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
             // xvdd | Target ID 3
 
             if (awsDevice == "/dev/sda1") return 0;
-            var ScsiId = awsDevice[awsDevice.Length - 1];
+            var scsiId = awsDevice[awsDevice.Length - 1];
 
-            return (ScsiId - 97);
+            return (scsiId - 97);
         }
 
-        static int GetPhysicalDisk(string awsDevice)
+        public static int GetPhysicalDisk(string awsDevice)
         {
             var scsiTargetId = GetScsiTargetId(awsDevice);
 
@@ -48,6 +55,12 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
                 disk = int.Parse(deviceId.Replace(@"\\.\PHYSICALDRIVE", ""));
             }
 
+            if (disk == 0)
+            {
+                var message = "Could not find physical disk for AWS Device: " + awsDevice;
+                Logger.Error(message, "AwsDevices.GetPhysicalDisk");
+                throw new ApplicationException(message);
+            }
             return disk;
         }
 

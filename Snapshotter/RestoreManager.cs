@@ -14,25 +14,25 @@ namespace Cloudoman.AwsTools.Snapshotter
     {
         private readonly string _backupName;
         private readonly string _timeStamp;
-        private IEnumerable<SnapshotInfo> _allSnapshots;
+        private readonly IEnumerable<SnapshotInfo> _allSnapshots;
+        private readonly RestoreRequest _request;
 
         public RestoreManager(RestoreRequest request)
         {
-            
+            _request = request;
+
             // Get Backup Name from Request or from Instance NAME tag
-            _backupName = request.BackupName ?? InstanceInfo.ServerName;
+            _backupName = _request.BackupName ?? InstanceInfo.ServerName;
             if (_backupName == null)
             {
-                var message = "The backup name defauts to this EC2 Instances's 'Name' tag.";
-                message += "Please explicitly provide a backup name OR tag this EC2 instance with a name";
-                message += "from the AWS Console or using the AWS API.";
+                var message = "When a backupname is not provided, it's defauted to this EC2 Instances's 'Name' tag.";
+                message += "Unable to determing either. Falling back to this EC2 Instance's hostname.";
 
-                Logger.Error(message, "RestoreManager");
-                throw new System.ApplicationException(message);
+                Logger.Info(message, "RestoreManager");
             }
 
 
-            // Get Snapshots with given backup name
+            // Get All Snapshots with given backup name
             _allSnapshots = GetAllSnapshots();
             if (_allSnapshots.ToList().Count == 0 )
             {
@@ -41,8 +41,8 @@ namespace Cloudoman.AwsTools.Snapshotter
                 return;
             }
 
-            // Get Snapshot timestamp from Request or default to latest in _snapshotInfo
-            _timeStamp = request.TimeStamp;
+            // Get timestamp from Request or default to latest in _snapshotInfo
+            _timeStamp = _request.TimeStamp;
             if (String.IsNullOrEmpty(_timeStamp)) _timeStamp = null;
             if (_timeStamp == null && GetLatestSnapshotTimeStamp() == null)
             {
@@ -65,6 +65,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             var snapshots = InstanceInfo.Ec2Client.DescribeSnapshots(request).DescribeSnapshotsResult.Snapshot;
 
             // Generate List<SnapshotInfo> from EC2 Snapshots
+            // Get Snapshot meta data from AWS resource Tags
             var snapshotsInfo = new List<SnapshotInfo>();
             snapshots.ForEach(x => snapshotsInfo.Add(new SnapshotInfo
             {
@@ -118,10 +119,11 @@ namespace Cloudoman.AwsTools.Snapshotter
             Logger.Info("Restore Started", "RestoreManager.StartRestore");
             Logger.Info("Backup Name:" + _backupName, "RestoreManager.StartRestore");
 
-            // Find Snapshots to Restore
+            // Find Snapshots to Restore based on timestamp
             var snapshots = GetSnapshotSet();
             snapshots.ToList().ForEach(x =>
             {
+                // Restore each snapshot in the sanpshot set
                 Console.WriteLine(x.ToString());
                 RestoreVolume(x);
             });
@@ -131,20 +133,38 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void RestoreVolume(SnapshotInfo snapshot)
         {
-            
-            Logger.Info("Restore Volume:" + snapshot.SnapshotId,"RestoreVolume");
+
+            Logger.Info("Restore Volume:" + snapshot.SnapshotId, "RestoreManager.RestoreVolume");
 
             // Create New Volume and Tag it
             var volumeId = CreateVolume(snapshot);
             TagVolume(snapshot, volumeId);
 
-            // Detach Volume if any
-            DetachVolume(snapshot);
+            // Detach Volumes as appropriate
+            var volume = VolumeAtDevice(snapshot);
+            if (volume != null)
+            {
+                // Offline Disk assocated with required device
+                OfflineDisk(snapshot);
 
+                if (_request.ForceDetach)
+                {
+                    
+                    DetachVolume(snapshot);
+                }
+                else
+                {
+                    var message = "The AWS Device: " + snapshot.DeviceName +
+                                  " is currently attached to another volume on this server. Please detach volume before restore or set ForceDetach to true";
+
+                    Logger.Error(message, "RestoreManager.RestoreVolume");
+                    return;
+                }
+            }
             //Attach new volume
             AttachVolume(snapshot, volumeId);
  
-            // Online Disk New Disk (Just onliningg all disks here)
+            // Online Disk New Disk (Just onlining all disks here)
             var diskPart = new DiskPart();
             diskPart.ListDisk().ToList().ForEach(x => diskPart.OnlineDisk(x.Num));
 
@@ -258,64 +278,69 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         }
 
-        void DetachVolume(SnapshotInfo snapshot)
+        Volume VolumeAtDevice(SnapshotInfo snapshot)
         {
-            // Detach any existing volumes from requested device if 
-            // it is not free
-            var currentVolume = InstanceInfo.Volumes.Where(x => x.Attachment[0].Device == snapshot.DeviceName).FirstOrDefault();
+            // Get AWS Device Name from Snapshot's AWS Resource Tag
+            var deviceName = snapshot.DeviceName;
 
-            
-            if (currentVolume != null)
-            {
-                try
-                {
+            // Find volumes attached to device
+            var currentVolume = InstanceInfo.Volumes.FirstOrDefault(x => x.Attachment[0].Device == deviceName);
 
-                    Logger.Info("Requested device:" + snapshot.DeviceName + " is already attached to a volume" + currentVolume.VolumeId , "DetachVolume");
-
-                    // Take Windows Physical Disk Offline
-                    OfflineDrive(snapshot);
-
-                    Logger.Info("Detaching Volume", "RestoreVolume");
-
-                    var detachRequest = new DetachVolumeRequest
-                    {
-                        InstanceId = InstanceInfo.InstanceId,
-                        VolumeId = currentVolume.VolumeId,
-                        Device = snapshot.DeviceName,
-                        Force = true
-                    };
-
-                    var response = InstanceInfo.Ec2Client.DetachVolume(detachRequest);
-
-                    Logger.Info("Detached Volume:" + currentVolume.VolumeId + " Drive:" + snapshot.Drive, "RestoreVolume");
-                }
-                catch (Amazon.EC2.AmazonEC2Exception ex)
-                {
-                    Logger.Error("Error while detaching existing volume", "RestoreVolume");
-                    Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume");
-                    return;
-                }
-            }
-
-            WaitAttachmentStatus(currentVolume.VolumeId, status: "available");
+            // Return true if an attached volume was found
+            return currentVolume;
         }
 
-        void OfflineDrive(SnapshotInfo snapshot)
+        void DetachVolume(SnapshotInfo snapshot)
+        {
+            var mapping = AwsDevices.AwsDeviceMappings.FirstOrDefault(x => x.Device == snapshot.DeviceName);
+            if (mapping == null)
+            {
+                var message = "Could not find mappings for device: " + snapshot.DeviceName + ".Exitting";
+                Logger.Error(message, "RestoreManager.DetachVolume");
+            }
+
+            var currentVolumeId = mapping.VolumeId;
+
+            try
+            {
+                Logger.Info("Detaching Volume", "RestoreVolume");
+
+                var detachRequest = new DetachVolumeRequest
+                {
+                    InstanceId = InstanceInfo.InstanceId,
+                    VolumeId = currentVolumeId,
+                    Device = snapshot.DeviceName,
+                    Force = true
+                };
+
+                Logger.Info("Detached Volume:" + currentVolumeId + " Drive:" + snapshot.Drive, "RestoreVolume.DetachVolume");
+            }
+            catch (Amazon.EC2.AmazonEC2Exception ex)
+            {
+                Logger.Error("Error while detaching existing volume", "RestoreVolume.DetachVolume");
+                Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume.DetachVolume");
+                return;
+            }
+
+            WaitAttachmentStatus(currentVolumeId, status: "available");
+        }
+
+        void OfflineDisk(SnapshotInfo snapshot)
         {
 
-            Logger.Info("Taking disk offline on device:" + snapshot.DeviceName, "OfflineDrive");
-            // Find the Windows physical disk of the EBS volume
+            Logger.Info("Taking disk offline on device:" + snapshot.DeviceName, "OfflineDisk");
 
-            var diskPart = new DiskPart();
-            var winVolume = diskPart.ListVolume().Where(x => x.Letter == snapshot.Drive).FirstOrDefault();
-            var diskNumber = diskPart.VolumeDetail(winVolume.Num).Disk.Num;
-            
+            // Find the Windows physical disk number attached to the AWS device (snapshot.DeviceName)
+            var mapping = AwsDevices.GetMapping(snapshot.DeviceName);
+            var diskNumber = mapping.DiskNumber;
+
             // Offline Disk
+            var diskPart = new DiskPart();
             var response = diskPart.OfflineDisk(diskNumber);
             if (!response.Status)
             {
-                Logger.Error("Error taking disk offline", "OfflineDrive");
-                Logger.Error("Diskpart Output:" + response.Output, "OfflineDrive");
+                Logger.Error("Error taking disk offline", "OfflineDisk");
+                Logger.Error("Diskpart Output:" + response.Output, "OfflineDisk");
             }
             Logger.Info("Disk was taken offline", "OffineDrive");
         }
@@ -324,9 +349,9 @@ namespace Cloudoman.AwsTools.Snapshotter
         {
 
             Logger.Info("Bringing disk online on device:" + snapshot.DeviceName, "OnlineDrive");
-            // Find the Windows physical disk of the EBS volume
-            var mappings = AwsDevices.AwsDeviceMappings;
-            var mapping = mappings.Where(x => x.Device == snapshot.DeviceName).FirstOrDefault();
+
+            // Find the Windows physical disk number attached to the AWS device (snapshot.DeviceName)
+            var mapping = AwsDevices.GetMapping(snapshot.DeviceName);
             var diskNumber = mapping.DiskNumber;
 
             // Online Disk
@@ -343,11 +368,14 @@ namespace Cloudoman.AwsTools.Snapshotter
             // Assign Volume appropriate Drive Letter
             Logger.Info("Assigning drive letter", "OnlineDrive");
             var assignResponse = diskPart.AssignDriveLetter(mapping.VolumeNumber, mapping.Drive);
-            if (!assignResponse.Status)
+            if (assignResponse.Status)
             {
-                Logger.Error("Error assigning drive letter", "OnlineDrive");
-                Logger.Error("Diskpart Output:" + assignResponse.Output, "OnlineDrive");
+                Logger.Info("Drive Letter successfully assigned", "RestoreManager.OnlineDrive");
+                return;
             }
+
+            Logger.Error("Error assigning drive letter", "OnlineDrive");
+            Logger.Error("Diskpart Output:" + assignResponse.Output, "OnlineDrive");
         }
 
         void AttachVolume(SnapshotInfo snapshot, string volumeId)
@@ -381,6 +409,13 @@ namespace Cloudoman.AwsTools.Snapshotter
             
             var volume = InstanceInfo.Ec2Client.DescribeVolumes(new DescribeVolumesRequest { VolumeId = new List<string>{volumeId}})
                                      .DescribeVolumesResult.Volume.FirstOrDefault();
+
+            if (volume == null)
+            {
+                var message = "Error. " + volumeId + " was not found attached to this instance. Exitting";
+                Logger.Error(message, "RestoreManager.AttachmentStatus");                
+            }
+
             var status = volume.Status ;
             Logger.Info("Volume :" + volumeId + " status:" + status,"IsAttached" );
             return status;
@@ -388,8 +423,8 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void WaitAttachmentStatus(string volumeId, string status)
         {
-            int retry = 12;
-            int waitInSeconds = 10;
+            const int retry = 12;
+            const int waitInSeconds = 10;
             string currentStatus = null;
 
             for (int i = 1; i <= retry; i++ )
@@ -406,7 +441,6 @@ namespace Cloudoman.AwsTools.Snapshotter
             
             var message ="Volume attachment status still: " + currentStatus + ".Exitting.";
             Logger.Error(message, "WaitForAttachment");
-            throw new System.ApplicationException(message);
         }
 
     }

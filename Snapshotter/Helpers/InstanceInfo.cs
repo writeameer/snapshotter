@@ -13,14 +13,18 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
 
         static readonly WebClient Web = new WebClient();
 
+        // Following variables will remain static during operations
         public static readonly AmazonEC2 Ec2Client;
         public static readonly string InstanceId;
         public static readonly string Ec2Region;
         public static readonly string ServerName;
-        public static readonly List<Volume> Volumes;
-        public static readonly IEnumerable<string> FreeDevices;
         public static readonly string AvailabilityZone;
         public static readonly string HostName = Dns.GetHostName();
+
+        // Volumes and FreeDevices can change during operations
+        public static List<Volume> Volumes {get { return GetMyVolumes(); }}
+        public static IEnumerable<string> FreeDevices { get { return GetFreeDevices(); } }
+
         static InstanceInfo()
         {
             InstanceId = GetInstanceId();
@@ -29,8 +33,6 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
             var ec2Config = new AmazonEC2Config { ServiceURL = Ec2Region };
             Ec2Client = AWSClientFactory.CreateAmazonEC2Client(ec2Config);
             ServerName = GetInstanceTag("Name");
-            Volumes = GetMyVolumes();
-            FreeDevices = GetFreeDevices();
             AvailabilityZone = GetAvailabilityZone();
         }
 

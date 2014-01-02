@@ -13,11 +13,10 @@ namespace Cloudoman.AwsTools.Snapshotter
     public class BackupManager
     {
         readonly string _backupName;
-        List<VolumeInfo> _volumesInfo;
+        readonly List<VolumeInfo> _volumesInfo;
         IVssImplementation _vssImplementation;
         IVssBackupComponents _vssBackupComponents;
-        readonly string _hostName = Dns.GetHostName();
-        BackupRequest _request;
+        readonly BackupRequest _request;
 
         public BackupManager(BackupRequest request)
         {
@@ -26,7 +25,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             _backupName = _request.BackupName ?? InstanceInfo.ServerName;
             if ( String.IsNullOrEmpty(_backupName))
             {
-                _backupName = _hostName;
+                _backupName = InstanceInfo.HostName;
                 var message = "When a backupname is not provided, it's defauted to this EC2 Instances's 'Name' tag .";
                 message += "Unable to determing either. Falling back to this EC2 Instance's hostname.";
 
@@ -46,7 +45,7 @@ namespace Cloudoman.AwsTools.Snapshotter
                 VolumeId = x.Attachment[0].VolumeId,
                 DeviceName = x.Attachment[0].Device,
                 Drive = AwsDevices.AwsDeviceMappings.Where(d => d.VolumeId == x.VolumeId).Select(d => d.Drive).FirstOrDefault(),
-                Hostname = _hostName,
+                Hostname = InstanceInfo.HostName,
                 BackupName = _backupName,
                 TimeStamp = timeStamp
             }).ToList();
@@ -121,7 +120,7 @@ namespace Cloudoman.AwsTools.Snapshotter
 
                 // Tag Snapshot
                 InstanceInfo.Ec2Client.CreateTags(tagRequest);
-                Logger.Info("HostName " + _hostName + ":" + InstanceInfo.InstanceId + " Volume Id:" + backupVolumeInfo.VolumeId + " was snapshotted and tagged.", "SnapShotVolume");
+                Logger.Info("HostName " + InstanceInfo.HostName + ":" + InstanceInfo.InstanceId + " Volume Id:" + backupVolumeInfo.VolumeId + " was snapshotted and tagged.", "SnapShotVolume");
             }
             catch (Exception e)
             {
