@@ -85,7 +85,8 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
         [TestMethod]
         public void DetailDisk()
         {
-            var detail = _diskPart.DiskDetail(1).Volume.Num;
+            
+            var detail = _diskPart.DiskDetail(3).Volume.Num;
             Console.WriteLine(detail);
             
         }

@@ -219,19 +219,21 @@ namespace Cloudoman.DiskTools
                 ClusteredDisk = output.GetBool("Clustered Disk")
             };
 
-            diskDetail.Volume = output.Skip(24).Take(1)
-                                     .Select(x => new Volume
-                                     {
-                                         Num = int.Parse(x.Substring(2, 10).Split(' ')[1]),
-                                         Letter = x.Substring(14, 3).Trim().NullIfEmpty(),
-                                         Label = x.Substring(19, 11).Trim().NullIfEmpty(),
-                                         FileSystem = x.Substring(32, 4).Trim().NullIfEmpty(),
-                                         Type = x.Substring(39, 10).Trim().NullIfEmpty(),
-                                         Size = x.Substring(51, 7).Trim().NullIfEmpty(),
-                                         Status = x.Substring(60, 9).Trim().NullIfEmpty(),
-                                         Info = x.Substring(69, 8).Trim().NullIfEmpty()
-                                     }).FirstOrDefault();
-
+            if (!diskDetail.Status.ToLower().Contains("offline"))
+            {
+                diskDetail.Volume = output.Skip(24).Take(1)
+                                         .Select(x => new Volume
+                                         {
+                                             Num = int.Parse(x.Substring(2, 10).Split(' ')[1]),
+                                             Letter = x.Substring(14, 3).Trim().NullIfEmpty(),
+                                             Label = x.Substring(19, 11).Trim().NullIfEmpty(),
+                                             FileSystem = x.Substring(32, 4).Trim().NullIfEmpty(),
+                                             Type = x.Substring(39, 10).Trim().NullIfEmpty(),
+                                             Size = x.Substring(51, 7).Trim().NullIfEmpty(),
+                                             Status = x.Substring(60, 9).Trim().NullIfEmpty(),
+                                             Info = x.Substring(69, 8).Trim().NullIfEmpty()
+                                         }).FirstOrDefault();
+            }
             return diskDetail;
 
         }

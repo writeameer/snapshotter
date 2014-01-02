@@ -144,6 +144,10 @@ namespace Cloudoman.AwsTools.Snapshotter
             //Attach new volume
             AttachVolume(snapshot, volumeId);
  
+            // Online Disk New Disk (Just onliningg all disks here)
+            var diskPart = new DiskPart();
+            diskPart.ListDisk().ToList().ForEach(x => diskPart.OnlineDisk(x.Num));
+
             // Set Delete on termination to TRUE for restored volume
             SetDeleteOnTermination(snapshot.DeviceName, true);
         }
@@ -236,8 +240,8 @@ namespace Cloudoman.AwsTools.Snapshotter
                         new Tag{Key="SnapshotId", Value=snapshot.SnapshotId},
                         new Tag{Key="InstanceID", Value=InstanceInfo.InstanceId},
                         new Tag{Key="DeviceName", Value=snapshot.DeviceName},
-                        new Tag{Key="DeviceName", Value=snapshot.Drive},
-                        new Tag{Key="Name", Value="Snapshotter Restore: " + _backupName},
+                        new Tag{Key="Drive", Value=snapshot.Drive},
+                        new Tag{Key="Name", Value="Snapshotter Restore: " + _backupName + " Drive, " + snapshot.Drive},
                         new Tag{Key="BackupName", Value=_backupName},
                     }
                 };
@@ -298,14 +302,16 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         void OfflineDrive(SnapshotInfo snapshot)
         {
-            Logger.Info("Taking disk offline before detaching device:" + snapshot.DeviceName, "OfflineDrive");
+
+            Logger.Info("Taking disk offline on device:" + snapshot.DeviceName, "OfflineDrive");
             // Find the Windows physical disk of the EBS volume
+
             var diskPart = new DiskPart();
-            var volume = diskPart.ListVolume().Where(x => x.Letter == snapshot.Drive).FirstOrDefault();
-            var disk = diskPart.VolumeDetail(volume.Num).Disk;
+            var winVolume = diskPart.ListVolume().Where(x => x.Letter == snapshot.Drive).FirstOrDefault();
+            var diskNumber = diskPart.VolumeDetail(winVolume.Num).Disk.Num;
             
-            // Run Sync to commit pending changes
-            var response = diskPart.OfflineDisk(disk.Num);
+            // Offline Disk
+            var response = diskPart.OfflineDisk(diskNumber);
             if (!response.Status)
             {
                 Logger.Error("Error taking disk offline", "OfflineDrive");
@@ -314,6 +320,35 @@ namespace Cloudoman.AwsTools.Snapshotter
             Logger.Info("Disk was taken offline", "OffineDrive");
         }
 
+        void OnlineDrive(SnapshotInfo snapshot)
+        {
+
+            Logger.Info("Bringing disk online on device:" + snapshot.DeviceName, "OnlineDrive");
+            // Find the Windows physical disk of the EBS volume
+            var mappings = AwsDevices.AwsDeviceMappings;
+            var mapping = mappings.Where(x => x.Device == snapshot.DeviceName).FirstOrDefault();
+            var diskNumber = mapping.DiskNumber;
+
+            // Online Disk
+            var diskPart = new DiskPart();
+            var response = diskPart.OnlineDisk(diskNumber);
+            if (!response.Status)
+            {
+                Logger.Error("Error bringing disk online", "OnlineDrive");
+                Logger.Error("Diskpart Output:" + response.Output, "OnlineDrive");
+            }
+
+            Logger.Info("Disk was brought online", "OnlineDrive");
+
+            // Assign Volume appropriate Drive Letter
+            Logger.Info("Assigning drive letter", "OnlineDrive");
+            var assignResponse = diskPart.AssignDriveLetter(mapping.VolumeNumber, mapping.Drive);
+            if (!assignResponse.Status)
+            {
+                Logger.Error("Error assigning drive letter", "OnlineDrive");
+                Logger.Error("Diskpart Output:" + assignResponse.Output, "OnlineDrive");
+            }
+        }
 
         void AttachVolume(SnapshotInfo snapshot, string volumeId)
         {

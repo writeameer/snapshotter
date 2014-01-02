@@ -42,5 +42,12 @@ namespace Cloudoman.AwsTools.Snapshotter.Tests
             var response = InstanceInfo.Ec2Client.ModifyInstanceAttribute(modifyAttrRequest);
             Console.WriteLine(response.ResponseMetadata);
         }
+
+        [TestMethod]
+        public void AwsDeviceMappings()
+        {
+            var test = AwsDevices.AwsDeviceMappings;
+            Console.WriteLine(test.FirstOrDefault().Device);
+        }
     }
 }
