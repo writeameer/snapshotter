@@ -15,7 +15,7 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
             AwsDeviceMappings = GetAwsDeviceMapping();
         }
 
-        static int AwsDeviceToSCSITarget(string device)
+        static int GetScsiTargetId(string awsDevice)
         {
 
             // AWS Maps devices to SCSITargetId like this:
@@ -24,28 +24,49 @@ namespace Cloudoman.AwsTools.Snapshotter.Helpers
             // xvdc | Target ID 2
             // xvdd | Target ID 3
 
-            if (device == "/dev/sda1") return 0;
-            var ScsiId = device[device.Length - 1];
+            if (awsDevice == "/dev/sda1") return 0;
+            var ScsiId = awsDevice[awsDevice.Length - 1];
 
             return (ScsiId - 97);
+        }
+
+        static int GetPhysicalDisk(string awsDevice)
+        {
+            var scsiTargetId = GetScsiTargetId(awsDevice);
+
+            var query = new SelectQuery("Select DeviceId From Win32_DiskDrive where SCSITargetId =" + scsiTargetId);
+            var searcher = new ManagementObjectSearcher(query);
+            var collection = searcher.Get();
+
+            int disk = 0;
+            foreach (var item in collection)
+            {
+                var deviceId = item["DeviceId"].ToString();
+
+                // The WMI field deviceID normally looks like "\\.\PHYSICALDRIVE2"
+                // Extract the disk number only
+                disk = int.Parse(deviceId.Replace(@"\\.\PHYSICALDRIVE", ""));
+            }
+
+            return disk;
         }
 
         /// <summary>
         /// Returns the Windows Physical Disk Number attached to a given AWS Ebs Volume
         /// </summary>
-        /// <param name="DiskNumber"></param>
+        /// <param name="volume">EBS Volume ID</param>
         /// <returns></returns>
         static int GetDiskFromAwsVolume(Volume volume)
         {
             var device = volume.Attachment[0].Device;
 
-            // AWS is inconsistent. Responds with "/dev/sda1" for root device
+            // AWS is inconsistent. Responds with "/dev/sda1" for root awsDevice
             // but with only "xvdf" or "xvdg" for other devices
             // Prefixing all with  "/dev/" for consistency
             device = device.Contains("/dev/") ? device : "/dev/" + device;
 
             // Get Windows DiskInfo(DeviceId) from AWSDevice(SCSITargetId) Win32_DiskDrive WMI counter
-            var scsiTargetId = AwsDeviceToSCSITarget(device);
+            var scsiTargetId = GetScsiTargetId(device);
             var query = new SelectQuery("Select DeviceId From Win32_DiskDrive where SCSITargetId ="+ scsiTargetId);
             var searcher = new ManagementObjectSearcher(query);
             var collection = searcher.Get();
