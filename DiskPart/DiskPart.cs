@@ -248,7 +248,6 @@ namespace Cloudoman.DiskTools
 
             command = command.Replace("$volumeNumber", volumeNumber.ToString());
             command = command.Replace("$letter", letter.ToUpper());
-            Console.WriteLine(command);
 
             var output = RunCommand(command);
 

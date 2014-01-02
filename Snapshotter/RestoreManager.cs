@@ -116,16 +116,26 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         public void StartRestore()
         {
+            if (_request.WhatIf)
+            {
+                Logger.Warning("***** Restore will not be done. WhatIf is True *****", "RestoreManager.StartRestore");
+            }
+
             Logger.Info("Restore Started", "RestoreManager.StartRestore");
             Logger.Info("Backup Name:" + _backupName, "RestoreManager.StartRestore");
+
+            // Output Volume Info header
+            Console.WriteLine(new VolumeInfo().FormattedHeader);
 
             // Find Snapshots to Restore based on timestamp
             var snapshots = GetSnapshotSet();
             snapshots.ToList().ForEach(x =>
             {
-                // Restore each snapshot in the sanpshot set
+                // Output volume info being restored
                 Console.WriteLine(x.ToString());
-                RestoreVolume(x);
+
+                // Restore each snapshot in the sanpshot set
+                if (!_request.WhatIf) RestoreVolume(x);
             });
 
             Logger.Info("Restore Ended", "RestoreManager.StartRestore");
@@ -221,6 +231,7 @@ namespace Cloudoman.AwsTools.Snapshotter
 
         string CreateVolume(SnapshotInfo snapshot)
         {
+            
             Logger.Info("Creating Volume for snapshot :" + snapshot.SnapshotId, "CreateVolume");
 
             string volumeId = "";
@@ -243,6 +254,33 @@ namespace Cloudoman.AwsTools.Snapshotter
                 Logger.Error("Could not create volume.", "RestoreVolume");
                 Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume");
                 return null;
+            }
+
+            // Loop until volume is 'available'
+            var retry = 10;
+            var waitinSeconds = 30;
+            var loop = true;
+            string status="";
+            for (int i=1; i<=retry & loop; i++)
+            {
+                var describeVolumeRequest = new DescribeVolumesRequest { VolumeId = new List<string> { volumeId } };
+                var response = InstanceInfo.Ec2Client.DescribeVolumes(describeVolumeRequest);
+                var newVolume = response.DescribeVolumesResult.Volume.FirstOrDefault();
+                status = newVolume.Status;
+
+                
+                loop = status.ToLower() != "available";
+
+                if (loop) {
+                    Logger.Info("Waiting for volume to become 'available'. Volume status:" + status, "RestoreManager.CreateVolume");
+                    Thread.Sleep(waitinSeconds * 1000);
+                }
+
+            }
+
+            if (loop)
+            {
+                Logger.Error("Volume status is still:" + status, "RestoreManager.CreateVolume");
             }
 
             return volumeId;
@@ -375,7 +413,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             // Attach volume to EC2 Instance
             try
             {
-                Logger.Info("Attaching Volume to Instance", "RestoreVolume");
+                Logger.Info("Attaching Volume to Instance:" + volumeId +" @ Device:" + snapshot.DeviceName, "RestoreVolume");
                 var attachRequest = new AttachVolumeRequest
                 {
                     InstanceId = InstanceInfo.InstanceId,
@@ -389,8 +427,7 @@ namespace Cloudoman.AwsTools.Snapshotter
             }
             catch (Amazon.EC2.AmazonEC2Exception ex)
             {
-                Logger.Error("Error attaching volume.", "RestoreVolume");
-                Logger.Error("Exception:" + ex.Message + "\n" + ex.StackTrace, "RestoreVolume");
+                Logger.Error("Error attaching volume.\n Exception:" + ex.Message, "RestoreVolume");
             }
 
             WaitAttachmentStatus(volumeId, status: "in-use");
